@@ -1,14 +1,21 @@
 [project]
 name = "devtul"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.1.1"
+description = "A collection of developer tools for working with git repositories."
+authors = [
+    { name = "Will Morris", email = "willmorris103@gmail.com" },
+]
 readme = "README.md"
-requires-python = ">=3.13"
+license = "MIT License"
+requires-python = ">=3.9"
 dependencies = [
-"typer",
-"pyyaml",
-"gitpython"
+    "typer",
+    "pyyaml",
+    "gitpython",
 ]
 
-[scripts]
+[project.optional-dependencies]
+build = ["pyinstaller"]
+
+[project.scripts]
 devtul = "main:app"

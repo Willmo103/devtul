@@ -4,7 +4,7 @@ DevTul - A collection of developer tools for working with git repositories.
 
 import subprocess
 from pathlib import Path
-from typing import List, Optional, Literal
+from typing import List, Optional
 from datetime import datetime
 import fnmatch
 import json
@@ -20,7 +20,6 @@ app = typer.Typer(
     add_completion=True,
 )
 
-EncodingType = Literal["utf8", "ascii", "utf16", "latin1"]
 IGNORE_LIST = [
     "uv.lock",
     ".idea",
@@ -31,6 +30,46 @@ IGNORE_LIST = [
     ".*cache",
     ".python-version",
 ]
+
+
+def process_paths_for_subdir(
+    files: List[str], sub_dir: Optional[str]
+) -> tuple[List[str], List[str]]:
+    """
+    Filters files by a subdirectory and returns both original and adjusted paths.
+
+    This function is key to making the --sub-dir feature work. It takes all the
+    files from git, finds the ones inside the target sub-directory, and then
+    creates a "virtual" view of them by stripping the sub-directory prefix.
+    We need both the original paths (for reading files) and the adjusted paths
+    (for display in the tree or list).
+
+    Args:
+        files: List of file paths relative to the repo root.
+        sub_dir: The subdirectory to filter by, e.g., "src/app".
+
+    Returns:
+        A tuple containing:
+        - original_paths: Filtered list of original paths (e.g., ['src/app/main.py']).
+        - adjusted_paths: Paths adjusted to be relative to the sub_dir (e.g., ['main.py']).
+    """
+    if not sub_dir:
+        return files, files
+
+    # Normalize the path to use forward slashes and remove any leading/trailing ones.
+    normalized_dir = sub_dir.strip("/\\").replace("\\", "/")
+    if not normalized_dir:
+        return files, files
+
+    prefix = normalized_dir + "/"
+
+    # Find all files that start with the subdirectory path.
+    original_paths = [f for f in files if f.startswith(prefix)]
+
+    # Create new paths with the subdirectory prefix removed.
+    adjusted_paths = [f.removeprefix(prefix) for f in original_paths]
+
+    return original_paths, adjusted_paths
 
 
 def get_git_files(repo_path: Path, include_empty: bool = False) -> List[str]:
@@ -61,7 +100,9 @@ def get_git_files(repo_path: Path, include_empty: bool = False) -> List[str]:
 
         return files
     except subprocess.CalledProcessError as e:
-        typer.echo(f"Error: Unable to get git files from {repo_path}", err=True)
+        typer.echo(
+            f"Error: Unable to get git files from {repo_path}", err=True
+        )
         typer.echo(f"Git error: {e.stderr}", err=True)
         raise typer.Exit(1)
 
@@ -76,7 +117,9 @@ def apply_filters(
     if match_patterns:
         matched_files = set()
         for pattern in match_patterns:
-            pattern_matches = {f for f in file_set if fnmatch.fnmatch(f, pattern)}
+            pattern_matches = {
+                f for f in file_set if fnmatch.fnmatch(f, pattern)
+            }
             matched_files.update(pattern_matches)
         file_set = file_set.intersection(matched_files)
 
@@ -84,7 +127,9 @@ def apply_filters(
     if exclude_patterns:
         excluded_files = set()
         for pattern in exclude_patterns:
-            pattern_matches = {f for f in file_set if fnmatch.fnmatch(f, pattern)}
+            pattern_matches = {
+                f for f in file_set if fnmatch.fnmatch(f, pattern)
+            }
             excluded_files.update(pattern_matches)
         file_set = file_set.difference(excluded_files)
 
@@ -113,12 +158,16 @@ def build_tree_structure(files: List[str]) -> str:
                 current = current[part]
 
     # Convert tree_dict to tree string
-    def render_tree(node: dict, prefix: str = "", is_last: bool = True) -> List[str]:
+    def render_tree(
+        node: dict, prefix: str = "", is_last: bool = True
+    ) -> List[str]:
         lines = []
 
         # Collect directories
         dirs = [
-            (k, v) for k, v in node.items() if k != "__files__" and isinstance(v, dict)
+            (k, v)
+            for k, v in node.items()
+            if k != "__files__" and isinstance(v, dict)
         ]
         dirs.sort(key=lambda x: x[0])
 
@@ -218,19 +267,32 @@ def format_git_metadata_table(metadata: dict) -> str:
     table_lines.append(
         f"| Current Branch | {metadata.get('current_branch', 'Unknown')} |"
     )
-    table_lines.append(f"| Branches | {', '.join(metadata.get('branches', []))} |")
+    table_lines.append(
+        f"| Branches | {', '.join(metadata.get('branches', []))} |"
+    )
 
-    if "latest_commit" in metadata and "error" not in metadata["latest_commit"]:
+    if (
+        "latest_commit" in metadata
+        and "error" not in metadata["latest_commit"]
+    ):
         commit = metadata["latest_commit"]
-        table_lines.append(f"| Latest Commit | {commit.get('hash', 'Unknown')} |")
-        table_lines.append(f"| Commit Message | {commit.get('message', 'Unknown')} |")
+        table_lines.append(
+            f"| Latest Commit | {commit.get('hash', 'Unknown')} |"
+        )
+        table_lines.append(
+            f"| Commit Message | {commit.get('message', 'Unknown')} |"
+        )
         table_lines.append(f"| Author | {commit.get('author', 'Unknown')} |")
-        table_lines.append(f"| Commit Date | {commit.get('date', 'Unknown')} |")
+        table_lines.append(
+            f"| Commit Date | {commit.get('date', 'Unknown')} |"
+        )
 
     table_lines.append(
         f"| Uncommitted Changes | {'Yes' if metadata.get('uncommitted_changes') else 'No'} |"
     )
-    table_lines.append(f"| Untracked Files | {metadata.get('untracked_files', 0)} |")
+    table_lines.append(
+        f"| Untracked Files | {metadata.get('untracked_files', 0)} |"
+    )
 
     if metadata.get("remotes"):
         remotes_str = ", ".join(
@@ -256,14 +318,18 @@ def write_output(
         try:
             with open(file_path, "w", encoding=encoding) as f:
                 f.write(content)
-            if not print_output:  # Only show file message if not printing to stdout
+            if (
+                not print_output
+            ):  # Only show file message if not printing to stdout
                 typer.echo(f"Output written to: {file_path}")
         except Exception as e:
             typer.echo(f"Error writing to file {file_path}: {e}", err=True)
             raise typer.Exit(1)
 
 
-def search_in_file(file_path: Path, search_term: str, encoding: str) -> List[dict]:
+def search_in_file(
+    file_path: Path, search_term: str, encoding: str
+) -> List[dict]:
     """Search for a term in a file and return matching lines with context."""
     matches = []
     try:
@@ -294,10 +360,22 @@ def tree(
     print_output: bool = typer.Option(
         False, "-p", "--print", help="Print output to STDOUT"
     ),
-    encoding: EncodingType = typer.Option(
-        "utf8", "--encoding", help="Character encoding to use"
+    encoding: str = typer.Option(
+        "utf8",
+        "--encoding",
+        help="Character encoding to use",
+        callback=lambda v: (
+            v
+            if v in ["utf8", "ascii", "utf16", "latin1"]
+            else typer.BadParameter("Invalid encoding")
+        ),
     ),
-    file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
+    file: Optional[Path] = typer.Option(
+        None, "-f", "--file", help="Output file path"
+    ),
+    sub_dir: Optional[str] = typer.Option(
+        None, "--sub-dir", help="Specify a sub-directory to treat as the root"
+    ),
     match: List[str] = typer.Option(
         [],
         "-m",
@@ -323,7 +401,7 @@ def tree(
     Examples:
         tree ./my-repo
         tree ./my-repo --match "*.py" --match "*.md" --print
-        tree ./my-repo --exclude "*.pyc" -f tree_output.txt
+        tree ./my-repo --sub-dir src -f tree_output.txt
     """
     if not path.exists():
         typer.echo(f"Error: Path {path} does not exist", err=True)
@@ -334,16 +412,19 @@ def tree(
         raise typer.Exit(1)
 
     # Get git files
-    git_files = get_git_files(path, include_empty)
+    all_git_files = get_git_files(path, include_empty)
 
-    # Apply filters
-    filtered_files = apply_filters(git_files, match, exclude)
+    # Process for sub-directory if provided, giving us adjusted paths for display/filtering
+    _, adjusted_files = process_paths_for_subdir(all_git_files, sub_dir)
+
+    # Apply match/exclude filters to the adjusted paths
+    filtered_files = apply_filters(adjusted_files, match, exclude)
 
     if not filtered_files:
         typer.echo("No files match the specified criteria", err=True)
         raise typer.Exit(1)
 
-    # Build tree structure
+    # Build tree structure using the final filtered and adjusted list
     tree_output = build_tree_structure(filtered_files)
 
     # Determine output behavior
@@ -362,7 +443,7 @@ def markdown(
     print_output: bool = typer.Option(
         False, "-p", "--print", help="Print output to STDOUT"
     ),
-    encoding: EncodingType = typer.Option(
+    encoding: str = typer.Option(
         "utf8",
         "--encoding",
         help="Character encoding to use",
@@ -372,7 +453,12 @@ def markdown(
             else typer.BadParameter("Invalid encoding")
         ),
     ),
-    file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
+    file: Optional[Path] = typer.Option(
+        None, "-f", "--file", help="Output file path"
+    ),
+    sub_dir: Optional[str] = typer.Option(
+        None, "--sub-dir", help="Specify a sub-directory to treat as the root"
+    ),
     match: List[str] = typer.Option(
         [],
         "-m",
@@ -401,7 +487,7 @@ def markdown(
     Examples:
         md ./my-repo
         md ./my-repo --match "*.py" -f repo_docs.md
-        md ./my-repo --exclude "*.png" --exclude "*.jpg" --print
+        md ./my-repo --sub-dir src --exclude "*.png"
     """
     if not path.exists():
         typer.echo(f"Error: Path {path} does not exist", err=True)
@@ -411,21 +497,32 @@ def markdown(
         typer.echo(f"Error: {path} is not a git repository", err=True)
         raise typer.Exit(1)
 
-    # Get git files
-    git_files = get_git_files(path, include_empty)
+    # Get all git files
+    all_git_files = get_git_files(path, include_empty)
 
-    # Apply filters
-    filtered_files = apply_filters(git_files, match, exclude)
+    # Process for sub-directory
+    original_files, adjusted_files = process_paths_for_subdir(
+        all_git_files, sub_dir
+    )
 
-    if not filtered_files:
+    # Create a map to get original path from adjusted path
+    path_map = dict(zip(adjusted_files, original_files))
+
+    # Apply match/exclude filters on the adjusted paths
+    filtered_adjusted_files = apply_filters(adjusted_files, match, exclude)
+
+    if not filtered_adjusted_files:
         typer.echo("No files match the specified criteria", err=True)
         raise typer.Exit(1)
+
+    # Get the corresponding original files for reading content
+    filtered_original_files = [path_map[f] for f in filtered_adjusted_files]
 
     # Get git metadata
     git_metadata = get_git_metadata(path)
 
-    # Build tree structure
-    tree_structure = build_tree_structure(filtered_files)
+    # Build tree structure using the adjusted paths
+    tree_structure = build_tree_structure(filtered_adjusted_files)
 
     # Build markdown content
     markdown_content = []
@@ -434,12 +531,14 @@ def markdown(
     frontmatter = {
         "generated_at": datetime.now().isoformat(),
         "repo_path": str(path.absolute()),
-        "file_count": len(git_files),
-        "files_included": len(filtered_files),
+        "file_count": len(all_git_files),
+        "files_included": len(filtered_original_files),
     }
 
     markdown_content.append("---")
-    markdown_content.append(yaml.dump(frontmatter, default_flow_style=False).strip())
+    markdown_content.append(
+        yaml.dump(frontmatter, default_flow_style=False).strip()
+    )
     markdown_content.append("---")
     markdown_content.append("")
 
@@ -468,11 +567,14 @@ def markdown(
     markdown_content.append("---")
     markdown_content.append("")
 
-    # File contents
-    for file_path in sorted(filtered_files):
-        full_path = path / file_path
+    # File contents - iterate using both original and adjusted paths
+    for adj_path, orig_path in zip(
+        sorted(filtered_adjusted_files), sorted(filtered_original_files)
+    ):
+        full_path = path / orig_path
+        display_path = adj_path
 
-        markdown_content.append(f"### {full_path.name}")
+        markdown_content.append(f"### {Path(display_path).name}")
         markdown_content.append("")
 
         if file_meta:
@@ -480,7 +582,9 @@ def markdown(
             try:
                 stat = full_path.stat()
                 file_size = stat.st_size
-                last_modified = datetime.fromtimestamp(stat.st_mtime).isoformat()
+                last_modified = datetime.fromtimestamp(
+                    stat.st_mtime
+                ).isoformat()
             except Exception:
                 file_size = "Unknown"
                 last_modified = "Unknown"
@@ -488,7 +592,7 @@ def markdown(
             file_table = [
                 "| Property | Value |",
                 "|----------|-------|",
-                f"| Relative Path | {file_path} |",
+                f"| Relative Path | {display_path} |",
                 f"| Last Modified | {last_modified} |",
                 f"| Size | {file_size} bytes |",
             ]
@@ -497,7 +601,7 @@ def markdown(
             markdown_content.append("")
         else:
             # Just show relative path
-            markdown_content.append(f"**Path:** `{file_path}`")
+            markdown_content.append(f"**Path:** `{display_path}`")
             markdown_content.append("")
 
         # File content
@@ -506,7 +610,9 @@ def markdown(
         markdown_content.append("```")
 
         try:
-            with open(full_path, "r", encoding=encoding, errors="replace") as f:
+            with open(
+                full_path, "r", encoding=encoding, errors="replace"
+            ) as f:
                 content = f.read()
                 markdown_content.append(content)
         except Exception as e:
@@ -534,10 +640,22 @@ def ls(
     print_output: bool = typer.Option(
         False, "-p", "--print", help="Print output to STDOUT"
     ),
-    encoding: EncodingType = typer.Option(
-        "utf8", "--encoding", help="Character encoding to use"
+    encoding: str = typer.Option(
+        "utf8",
+        "--encoding",
+        help="Character encoding to use",
+        callback=lambda v: (
+            v
+            if v in ["utf8", "ascii", "utf16", "latin1"]
+            else typer.BadParameter("Invalid encoding")
+        ),
     ),
-    file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
+    file: Optional[Path] = typer.Option(
+        None, "-f", "--file", help="Output file path"
+    ),
+    sub_dir: Optional[str] = typer.Option(
+        None, "--sub-dir", help="Specify a sub-directory to treat as the root"
+    ),
     match: List[str] = typer.Option(
         [],
         "-m",
@@ -563,7 +681,7 @@ def ls(
     Examples:
         ls ./my-repo
         ls ./my-repo --match "*.py" --print
-        ls ./my-repo --exclude "*.pyc" -f files_list.txt
+        ls ./my-repo --sub-dir src -f files_list.txt
     """
     if not path.exists():
         typer.echo(f"Error: Path {path} does not exist", err=True)
@@ -574,10 +692,13 @@ def ls(
         raise typer.Exit(1)
 
     # Get git files
-    git_files = get_git_files(path, include_empty)
+    all_git_files = get_git_files(path, include_empty)
 
-    # Apply filters
-    filtered_files = apply_filters(git_files, match, exclude)
+    # Process for sub-directory if provided
+    _, adjusted_files = process_paths_for_subdir(all_git_files, sub_dir)
+
+    # Apply match/exclude filters
+    filtered_files = apply_filters(adjusted_files, match, exclude)
 
     if not filtered_files:
         typer.echo("No files match the specified criteria", err=True)
@@ -599,10 +720,19 @@ def git_meta(
     print_output: bool = typer.Option(
         False, "-p", "--print", help="Print output to STDOUT"
     ),
-    encoding: EncodingType = typer.Option(
-        "utf8", "--encoding", help="Character encoding to use"
+    encoding: str = typer.Option(
+        "utf8",
+        "--encoding",
+        help="Character encoding to use",
+        callback=lambda v: (
+            v
+            if v in ["utf8", "ascii", "utf16", "latin1"]
+            else typer.BadParameter("Invalid encoding")
+        ),
     ),
-    file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
+    file: Optional[Path] = typer.Option(
+        None, "-f", "--file", help="Output file path"
+    ),
     json_format: bool = typer.Option(
         False, "--json", help="Output as JSON instead of markdown table"
     ),
@@ -654,10 +784,22 @@ def find(
     print_output: bool = typer.Option(
         False, "-p", "--print", help="Print output to STDOUT"
     ),
-    encoding: EncodingType = typer.Option(
-        "utf8", "--encoding", help="Character encoding to use"
+    encoding: str = typer.Option(
+        "utf8",
+        "--encoding",
+        help="Character encoding to use",
+        callback=lambda v: (
+            v
+            if v in ["utf8", "ascii", "utf16", "latin1"]
+            else typer.BadParameter("Invalid encoding")
+        ),
     ),
-    file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
+    file: Optional[Path] = typer.Option(
+        None, "-f", "--file", help="Output file path"
+    ),
+    sub_dir: Optional[str] = typer.Option(
+        None, "--sub-dir", help="Specify a sub-directory to treat as the root"
+    ),
     match: List[str] = typer.Option(
         [],
         "-m",
@@ -689,7 +831,7 @@ def find(
     Examples:
         find ./my-repo "function"
         find ./my-repo "TODO" --match "*.py" --print
-        find ./my-repo "import" -f search_results.json --json
+        find ./my-repo "import" --sub-dir src -f search_results.json --json
     """
     if not path.exists():
         typer.echo(f"Error: Path {path} does not exist", err=True)
@@ -700,22 +842,37 @@ def find(
         raise typer.Exit(1)
 
     # Get git files (always exclude empty for searching)
-    git_files = get_git_files(path, include_empty=False)
+    all_git_files = get_git_files(path, include_empty=False)
 
-    # Apply filters
-    filtered_files = apply_filters(git_files, match, exclude)
+    # Process for sub-directory
+    original_files, adjusted_files = process_paths_for_subdir(
+        all_git_files, sub_dir
+    )
 
-    if not filtered_files:
+    # Create a map to get original path from adjusted path
+    path_map = dict(zip(adjusted_files, original_files))
+
+    # Apply match/exclude filters on the adjusted paths
+    filtered_adjusted_files = apply_filters(adjusted_files, match, exclude)
+
+    if not filtered_adjusted_files:
         typer.echo("No files match the specified criteria", err=True)
         raise typer.Exit(1)
 
+    # Get the corresponding original files for reading content
+    filtered_original_files = [path_map[f] for f in filtered_adjusted_files]
+
     # Search in files
     all_matches = []
-    for file_path in filtered_files:
-        full_path = path / file_path
+    for adj_path, orig_path in zip(
+        sorted(filtered_adjusted_files), sorted(filtered_original_files)
+    ):
+        full_path = path / orig_path
         matches = search_in_file(full_path, term, encoding)
         for match in matches:
-            match["relative_path"] = file_path
+            match["relative_path"] = (
+                adj_path  # Use the adjusted path for display
+            )
             all_matches.append(match)
 
     if not all_matches:
