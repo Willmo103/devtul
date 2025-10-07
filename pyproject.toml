@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
 
 [project]
 name = "devtul"
@@ -22,7 +22,7 @@ dependencies = [
 where = ["src"]
 
 [project.optional-dependencies]
-build = ["pyinstaller"]
+build = ["uv_build>=0.8.22,<0.9.0"]
 
 [project.scripts]
 devtul = "devtul.main:main"
