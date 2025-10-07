@@ -6,7 +6,7 @@ setlocal enabledelayedexpansion
 
 :: Defaults
 set "APP_NAME=devtul"
-set "ENTRY=main.py"
+set "ENTRY=src/devtul/main.py"
 set "MODE=onefile"    :: options: onefile or onedir
 set "CONSOLE=yes"     :: yes => --console (default), no => --windowed
 set "DO_SYNC=yes"

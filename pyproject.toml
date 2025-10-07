@@ -18,4 +18,4 @@ dependencies = [
 build = ["pyinstaller"]
 
 [project.scripts]
-devtul = "main:app"
+devtul = "devtul.main:main"
