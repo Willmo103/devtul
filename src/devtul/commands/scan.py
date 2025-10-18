@@ -7,19 +7,22 @@ from typing import List, Optional
 
 import typer
 
+from ..core.file_utils import get_all_files
+
 from ..core import (
     IGNORE_PARTS,
     IGNORE_PATTERNS,
     apply_filters,
     build_tree_structure,
-    get_all_files,
     process_paths_for_subdir,
     write_output,
 )
 
 
 def scan(
-    path: Path = typer.Argument(..., help="Path to the directory to scan"),
+    path: Path = typer.Argument(
+        Path().cwd().resolve(), help="Path to the directory to scan"
+    ),
     print_output: bool = typer.Option(
         False, "-p", "--print", help="Print output to STDOUT"
     ),
@@ -33,9 +36,7 @@ def scan(
             else typer.BadParameter("Invalid encoding")
         ),
     ),
-    file: Optional[Path] = typer.Option(
-        None, "-f", "--file", help="Output file path"
-    ),
+    file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
     sub_dir: Optional[str] = typer.Option(
         None, "--sub-dir", help="Specify a sub-directory to treat as the root"
     ),

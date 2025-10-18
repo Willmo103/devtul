@@ -2,10 +2,10 @@
 Core utilities for devtul.
 """
 
+from .file_utils import get_all_files
 from .constants import IGNORE_PARTS, IGNORE_PATTERNS
 from .filters import (
     apply_filters,
-    get_all_files,
     process_paths_for_subdir,
     should_ignore_path,
 )

@@ -7,6 +7,8 @@ from typing import List, Optional
 
 import typer
 
+from devtul.core.file_utils import get_all_files
+
 from ..core import (
     apply_filters,
     get_git_files,
@@ -63,19 +65,20 @@ def ls(
         ls ./my-repo --match "*.py" --print
         ls ./my-repo --sub-dir src -f files_list.txt
     """
+    GIT_MODE = True
     if not path.exists():
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
     if not (path / ".git").exists():
-        typer.echo(f"Error: {path} is not a git repository", err=True)
-        raise typer.Exit(1)
+        GIT_MODE = False
+        all_files = get_all_files(path, include_empty=include_empty)
 
     # Get git files
-    all_git_files = get_git_files(path, include_empty)
+    all_files = get_git_files(path, include_empty=include_empty)
 
     # Process for sub-directory if provided
-    _, adjusted_files = process_paths_for_subdir(all_git_files, sub_dir)
+    _, adjusted_files = process_paths_for_subdir(all_files, sub_dir)
 
     # Apply match/exclude filters
     filtered_files = apply_filters(adjusted_files, match, exclude)

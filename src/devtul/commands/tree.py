@@ -67,14 +67,12 @@ def tree(
         raise typer.Exit(1)
 
     if not (path / ".git").exists():
-        typer.echo(f"Error: {path} is not a git repository", err=True)
-        raise typer.Exit(1)
-
+        all_files = get_all_filess(path, include_empty=include_empty)
     # Get git files
-    all_git_files = get_git_files(path, include_empty)
+    all_files = get_git_files(path, include_empty)
 
     # Process for sub-directory if provided, giving us adjusted paths for display/filtering
-    _, adjusted_files = process_paths_for_subdir(all_git_files, sub_dir)
+    _, adjusted_files = process_paths_for_subdir(all_files, sub_dir)
 
     # Apply match/exclude filters to the adjusted paths
     filtered_files = apply_filters(adjusted_files, match, exclude)

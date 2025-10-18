@@ -6,8 +6,6 @@ import fnmatch
 from pathlib import Path
 from typing import List, Optional
 
-from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS
-
 
 def process_paths_for_subdir(
     files: List[str], sub_dir: Optional[str]
@@ -59,9 +57,7 @@ def apply_filters(
     if match_patterns:
         matched_files = set()
         for pattern in match_patterns:
-            pattern_matches = {
-                f for f in file_set if fnmatch.fnmatch(f, pattern)
-            }
+            pattern_matches = {f for f in file_set if fnmatch.fnmatch(f, pattern)}
             matched_files.update(pattern_matches)
         file_set = file_set.intersection(matched_files)
 
@@ -69,16 +65,16 @@ def apply_filters(
     if exclude_patterns:
         excluded_files = set()
         for pattern in exclude_patterns:
-            pattern_matches = {
-                f for f in file_set if fnmatch.fnmatch(f, pattern)
-            }
+            pattern_matches = {f for f in file_set if fnmatch.fnmatch(f, pattern)}
             excluded_files.update(pattern_matches)
         file_set = file_set.difference(excluded_files)
 
     return sorted(list(file_set))
 
 
-def should_ignore_path(path: Path, ignore_parts: List[str], ignore_patterns: List[str]) -> bool:
+def should_ignore_path(
+    path: Path, ignore_parts: List[str], ignore_patterns: List[str]
+) -> bool:
     """
     Check if a path should be ignored based on ignore patterns.
 
@@ -103,45 +99,3 @@ def should_ignore_path(path: Path, ignore_parts: List[str], ignore_patterns: Lis
             return True
 
     return False
-
-
-def get_all_files(
-    repo_path: Path,
-    ignore_parts: Optional[List[str]] = None,
-    ignore_patterns: Optional[List[str]] = None,
-) -> List[str]:
-    """
-    Get all files in a directory recursively, filtering by ignore patterns.
-
-    Args:
-        repo_path: Root directory to search
-        ignore_parts: List of strings that should not appear anywhere in the path
-        ignore_patterns: List of glob patterns to match against paths
-
-    Returns:
-        List of relative file paths (strings)
-    """
-    all_files = []
-    if ignore_parts is None:
-        ignore_parts = IGNORE_PARTS
-    if ignore_patterns is None:
-        ignore_patterns = IGNORE_EXTENSIONS
-
-    for path in repo_path.rglob("*"):
-        # Skip directories, only include files
-        if not path.is_file():
-            continue
-
-        # Check if path should be ignored
-        if should_ignore_path(path, ignore_parts, ignore_patterns):
-            continue
-
-        # Get relative path from repo_path
-        try:
-            rel_path = path.relative_to(repo_path)
-            all_files.append(str(rel_path).replace("\\", "/"))
-        except ValueError:
-            # Skip files outside repo_path
-            continue
-
-    return sorted(all_files)

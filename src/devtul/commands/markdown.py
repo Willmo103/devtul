@@ -9,6 +9,8 @@ from typing import List, Optional
 import typer
 import yaml
 
+from devtul.core.file_utils import get_all_files
+
 from ..core import (
     apply_filters,
     build_tree_structure,
@@ -40,8 +42,11 @@ def markdown(
         ),
     ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
-    sub_dir: Optional[str] = typer.Option(
-        None, "--sub-dir", help="Specify a sub-directory to treat as the root"
+    sub_dir: Optional[List[str]] = typer.Option(
+        [],
+        "-s",
+        "--sub-dir",
+        help="Specify one or more sub-directories to treat as the root",
     ),
     match: List[str] = typer.Option(
         [],
@@ -73,21 +78,25 @@ def markdown(
         md ./my-repo --match "*.py" -f repo_docs.md
         md ./my-repo --sub-dir src --exclude "*.png"
     """
+    GIT_MODE = True
     if not path.exists():
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
     if not (path / ".git").exists():
-        typer.echo(f"Error: {path} is not a git repository", err=True)
-        raise typer.Exit(1)
+        GIT_MODE = False
+        all_files = get_all_files(path, include_empty=include_empty)
 
     # Get all git files
-    all_git_files = get_git_files(path, include_empty)
+    all_files = get_git_files(path, include_empty)
 
-    # Process for sub-directory
-    original_files, adjusted_files = process_paths_for_subdir(
-        all_git_files, sub_dir
-    )
+    original_files, adjusted_files = [], []
+    if sub_dir:
+        for sd in sub_dir:
+            # Process for sub-directory
+            orig_files, adj_files = process_paths_for_subdir(all_files, sd)
+            original_files.extend(orig_files)
+            adjusted_files.extend(adj_files)
 
     # Create a map to get original path from adjusted path
     path_map = dict(zip(adjusted_files, original_files))
@@ -102,8 +111,9 @@ def markdown(
     # Get the corresponding original files for reading content
     filtered_original_files = [path_map[f] for f in filtered_adjusted_files]
 
-    # Get git metadata
-    git_metadata = get_git_metadata(path)
+    if GIT_MODE:
+        # Get git metadata
+        git_metadata = get_git_metadata(path)
 
     # Build tree structure using the adjusted paths
     tree_structure = build_tree_structure(filtered_adjusted_files)
@@ -115,7 +125,7 @@ def markdown(
     frontmatter = {
         "generated_at": datetime.now().isoformat(),
         "repo_path": str(path.absolute()),
-        "file_count": len(all_git_files),
+        "file_count": len(all_files),
         "files_included": len(filtered_original_files),
     }
 
@@ -133,13 +143,14 @@ def markdown(
     markdown_content.append("---")
     markdown_content.append("")
 
-    # Git metadata section
-    markdown_content.append("## Git Metadata")
-    markdown_content.append("")
-    markdown_content.append(format_git_metadata_table(git_metadata))
-    markdown_content.append("")
-    markdown_content.append("---")
-    markdown_content.append("")
+    if GIT_MODE:
+        # Git metadata section
+        markdown_content.append("## Git Metadata")
+        markdown_content.append("")
+        markdown_content.append(format_git_metadata_table(git_metadata))
+        markdown_content.append("")
+        markdown_content.append("---")
+        markdown_content.append("")
 
     # Structure section
     markdown_content.append("## Structure")
