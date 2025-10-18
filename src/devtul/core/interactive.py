@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
+
 @dataclass
 class MenuItem:
     prompt: str
@@ -10,5 +11,3 @@ class MenuItem:
         if self.default:
             return f"{self.prompt} ({self.default}): "
         return f"{self.prompt}: "
-
-
