@@ -16,7 +16,11 @@ from ..core import (
 
 
 def git_meta(
-    path: Path = typer.Argument(..., help="Path to the git repository"),
+    path: Path = typer.Argument(
+        Path().cwd().resolve(),
+        help="Path to the git repository",
+        callback=lambda v: Path(v).resolve(),
+    ),
     print_output: bool = typer.Option(
         False, "-p", "--print", help="Print output to STDOUT"
     ),
@@ -30,9 +34,7 @@ def git_meta(
             else typer.BadParameter("Invalid encoding")
         ),
     ),
-    file: Optional[Path] = typer.Option(
-        None, "-f", "--file", help="Output file path"
-    ),
+    file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
     json_format: bool = typer.Option(
         False, "--json", help="Output as JSON instead of markdown table"
     ),

@@ -18,8 +18,10 @@ from ..core import (
 
 
 def find(
-    path: Path = typer.Argument(..., help="Path to the git repository"),
     term: str = typer.Argument(..., help="Search term to find in files"),
+    path: Path = typer.Option(
+        Path(".").resolve(), help="Path to the git repository"
+    ),
     print_output: bool = typer.Option(
         False, "-p", "--print", help="Print output to STDOUT"
     ),

@@ -14,12 +14,12 @@ app = typer.Typer(
 )
 
 # Register commands
-app.command(name="tree", no_args_is_help=True)(tree)
-app.command(name="md", no_args_is_help=True)(markdown)
-app.command(name="ls", no_args_is_help=True)(ls)
-app.command(name="meta", no_args_is_help=True)(git_meta)
-app.command(name="find", no_args_is_help=True)(find)
-app.command(name="scan", no_args_is_help=True)(scan)
+app.command(name="tree")(tree)
+app.command(name="md")(markdown)
+app.command(name="ls")(ls)
+app.command(name="meta")(git_meta)
+app.command(name="find")(find)
+app.command(name="scan")(scan)
 
 
 def main():

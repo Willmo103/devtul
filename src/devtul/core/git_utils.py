@@ -9,7 +9,7 @@ from typing import List
 import git
 import typer
 
-from .constants import IGNORE_PARTS
+from .constants import IGNORE_PARTS, IGNORE_EXTENSIONS
 
 
 def get_git_files(repo_path: Path, include_empty: bool = False) -> List[str]:
@@ -28,6 +28,8 @@ def get_git_files(repo_path: Path, include_empty: bool = False) -> List[str]:
             non_empty_files = []
             for file_path in files:
                 if any(ign in file_path for ign in IGNORE_PARTS):
+                    continue
+                if any(file_path.endswith(ext) for ext in IGNORE_EXTENSIONS):
                     continue
                 full_path = repo_path / file_path
                 try:

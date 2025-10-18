@@ -16,7 +16,9 @@ from ..core import (
 
 
 def ls(
-    path: Path = typer.Argument(..., help="Path to the git repository"),
+    path: Path = typer.Argument(
+        Path().cwd().resolve(), help="Path to the git repository"
+    ),
     print_output: bool = typer.Option(
         False, "-p", "--print", help="Print output to STDOUT"
     ),
@@ -30,9 +32,7 @@ def ls(
             else typer.BadParameter("Invalid encoding")
         ),
     ),
-    file: Optional[Path] = typer.Option(
-        None, "-f", "--file", help="Output file path"
-    ),
+    file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
     sub_dir: Optional[str] = typer.Option(
         None, "--sub-dir", help="Specify a sub-directory to treat as the root"
     ),

@@ -6,6 +6,8 @@ import fnmatch
 from pathlib import Path
 from typing import List, Optional
 
+from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS
+
 
 def process_paths_for_subdir(
     files: List[str], sub_dir: Optional[str]
@@ -79,57 +81,61 @@ def apply_filters(
 def should_ignore_path(path: Path, ignore_parts: List[str], ignore_patterns: List[str]) -> bool:
     """
     Check if a path should be ignored based on ignore patterns.
-    
+
     Args:
         path: Path to check
         ignore_parts: List of strings that should not appear anywhere in the path
         ignore_patterns: List of glob patterns to match against the path
-        
+
     Returns:
         True if the path should be ignored, False otherwise
     """
     path_str = str(path)
-    
+
     # Check ignore parts (simple substring match)
     for part in ignore_parts:
         if part in path_str:
             return True
-    
+
     # Check ignore patterns (glob match)
     for pattern in ignore_patterns:
         if fnmatch.fnmatch(path_str, pattern) or fnmatch.fnmatch(path.name, pattern):
             return True
-    
+
     return False
 
 
 def get_all_files(
     repo_path: Path,
-    ignore_parts: List[str],
-    ignore_patterns: List[str],
+    ignore_parts: Optional[List[str]] = None,
+    ignore_patterns: Optional[List[str]] = None,
 ) -> List[str]:
     """
     Get all files in a directory recursively, filtering by ignore patterns.
-    
+
     Args:
         repo_path: Root directory to search
         ignore_parts: List of strings that should not appear anywhere in the path
         ignore_patterns: List of glob patterns to match against paths
-        
+
     Returns:
         List of relative file paths (strings)
     """
     all_files = []
-    
+    if ignore_parts is None:
+        ignore_parts = IGNORE_PARTS
+    if ignore_patterns is None:
+        ignore_patterns = IGNORE_EXTENSIONS
+
     for path in repo_path.rglob("*"):
         # Skip directories, only include files
         if not path.is_file():
             continue
-            
+
         # Check if path should be ignored
         if should_ignore_path(path, ignore_parts, ignore_patterns):
             continue
-        
+
         # Get relative path from repo_path
         try:
             rel_path = path.relative_to(repo_path)
@@ -137,5 +143,5 @@ def get_all_files(
         except ValueError:
             # Skip files outside repo_path
             continue
-    
+
     return sorted(all_files)
