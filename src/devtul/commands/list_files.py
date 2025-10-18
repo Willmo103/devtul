@@ -35,8 +35,10 @@ def ls(
         ),
     ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
-    sub_dir: Optional[str] = typer.Option(
-        None, "--sub-dir", help="Specify a sub-directory to treat as the root"
+    sub_dir: Optional[List[str]] = typer.Option(
+        None,
+        "--sub-dir",
+        help="Specify one or more sub-directories to treat as the root",
     ),
     match: List[str] = typer.Option(
         [],
@@ -65,23 +67,18 @@ def ls(
         ls ./my-repo --match "*.py" --print
         ls ./my-repo --sub-dir src -f files_list.txt
     """
-    GIT_MODE = True
     if not path.exists():
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
     if not (path / ".git").exists():
-        GIT_MODE = False
         all_files = get_all_files(path, include_empty=include_empty)
 
     # Get git files
     all_files = get_git_files(path, include_empty=include_empty)
 
-    # Process for sub-directory if provided
-    _, adjusted_files = process_paths_for_subdir(all_files, sub_dir)
-
     # Apply match/exclude filters
-    filtered_files = apply_filters(adjusted_files, match, exclude)
+    filtered_files = apply_filters(all_files, match, exclude)
 
     if not filtered_files:
         typer.echo("No files match the specified criteria", err=True)

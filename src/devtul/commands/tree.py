@@ -7,6 +7,8 @@ from typing import List, Optional
 
 import typer
 
+from devtul.core.file_utils import get_all_files
+
 from ..core import (
     apply_filters,
     build_tree_structure,
@@ -17,7 +19,11 @@ from ..core import (
 
 
 def tree(
-    path: Path = typer.Argument(Path().pwd(), help="Path to the git repository"),
+    path: Path = typer.Argument(
+        Path().cwd().resolve(),
+        help="Path to the git repository",
+        callback=lambda v: Path(v).resolve(),
+    ),
     print_output: bool = typer.Option(
         False, "-p", "--print", help="Print output to STDOUT"
     ),
@@ -67,9 +73,10 @@ def tree(
         raise typer.Exit(1)
 
     if not (path / ".git").exists():
-        all_files = get_all_filess(path, include_empty=include_empty)
-    # Get git files
-    all_files = get_git_files(path, include_empty)
+        all_files = get_all_files(path, include_empty=include_empty)
+    else:
+        # Get git files
+        all_files = get_git_files(path, include_empty)
 
     # Process for sub-directory if provided, giving us adjusted paths for display/filtering
     _, adjusted_files = process_paths_for_subdir(all_files, sub_dir)
@@ -82,13 +89,13 @@ def tree(
         raise typer.Exit(1)
 
     # Build tree structure using the final filtered and adjusted list
-    tree_output = build_tree_structure(filtered_files)
+    tree_output = build_tree_structure(filtered_files, parent=path.as_posix())
 
     # Determine output behavior
     should_print = print_output or (file is None)
     output_file = file
     if file is not None and file == Path():
-        output_file = Path.cwd() / "flattened_repo.md"
+        output_file = Path.cwd() / "file_tree.md"
 
     # Write output
     write_output(tree_output, output_file, encoding, should_print)

@@ -45,5 +45,5 @@ def get_all_files(
                     # If we can't check the file, include it anyway
                     pass
             else:
-                all_files.append(str(path.relative_to(path)).replace("\\", "/"))
+                all_files.append((path.relative_to(path)).replace("\\", "/"))
     return all_files

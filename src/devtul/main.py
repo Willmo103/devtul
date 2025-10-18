@@ -4,7 +4,7 @@ DevTul - A collection of developer tools for working with git repositories.
 
 import typer
 
-from .commands import find, git_meta, ls, markdown, scan, tree
+from .commands import find, git_meta, ls, markdown, tree
 
 app = typer.Typer(
     name="devtul",
@@ -19,7 +19,6 @@ app.command(name="md")(markdown)
 app.command(name="ls")(ls)
 app.command(name="meta")(git_meta)
 app.command(name="find")(find)
-app.command(name="scan")(scan)
 
 
 def main():

@@ -3,7 +3,7 @@ Core utilities for devtul.
 """
 
 from .file_utils import get_all_files
-from .constants import IGNORE_PARTS, IGNORE_PATTERNS
+from .constants import IGNORE_PARTS, IGNORE_EXTENSIONS
 from .filters import (
     apply_filters,
     process_paths_for_subdir,
@@ -22,7 +22,7 @@ from .output import (
 
 __all__ = [
     "IGNORE_PARTS",
-    "IGNORE_PATTERNS",
+    "IGNORE_EXTENSIONS",
     "apply_filters",
     "build_tree_structure",
     "format_git_metadata_table",

@@ -32,7 +32,7 @@ def write_output(
             raise typer.Exit(1)
 
 
-def build_tree_structure(files: List[str]) -> str:
+def build_tree_structure(files: List[str], parent: str = ".") -> str:
     """Build a tree structure string from a list of file paths."""
     if not files:
         return ""
@@ -95,7 +95,8 @@ def build_tree_structure(files: List[str]) -> str:
         return ""
 
     # Start with root directory
-    root_lines = []
+    first_line = f"{parent}/"
+    root_lines = [first_line]
     if len(tree_dict) == 1 and "__files__" not in tree_dict:
         # Single root directory
         root_name = list(tree_dict.keys())[0]

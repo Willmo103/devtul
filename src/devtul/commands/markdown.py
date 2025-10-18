@@ -20,6 +20,17 @@ from ..core import (
     process_paths_for_subdir,
     write_output,
 )
+from ..core.constants import MD_XREF
+
+
+def get_markdown_mapping(file_path: str | Path) -> str:
+    """
+    Get the markdown mapping for a given file.
+    """
+    if isinstance(file_path, str):
+        file_path = Path(file_path)
+    extension = file_path.suffix.lower()
+    return MD_XREF.get(extension, "plaintext")
 
 
 def markdown(
@@ -42,12 +53,6 @@ def markdown(
         ),
     ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
-    sub_dir: Optional[List[str]] = typer.Option(
-        [],
-        "-s",
-        "--sub-dir",
-        help="Specify one or more sub-directories to treat as the root",
-    ),
     match: List[str] = typer.Option(
         [],
         "-m",
@@ -90,33 +95,19 @@ def markdown(
     # Get all git files
     all_files = get_git_files(path, include_empty)
 
-    original_files, adjusted_files = [], []
-    if sub_dir:
-        for sd in sub_dir:
-            # Process for sub-directory
-            orig_files, adj_files = process_paths_for_subdir(all_files, sd)
-            original_files.extend(orig_files)
-            adjusted_files.extend(adj_files)
-
-    # Create a map to get original path from adjusted path
-    path_map = dict(zip(adjusted_files, original_files))
-
     # Apply match/exclude filters on the adjusted paths
-    filtered_adjusted_files = apply_filters(adjusted_files, match, exclude)
+    filtered_files = apply_filters(all_files, match, exclude)
 
-    if not filtered_adjusted_files:
+    if not filtered_files:
         typer.echo("No files match the specified criteria", err=True)
         raise typer.Exit(1)
-
-    # Get the corresponding original files for reading content
-    filtered_original_files = [path_map[f] for f in filtered_adjusted_files]
 
     if GIT_MODE:
         # Get git metadata
         git_metadata = get_git_metadata(path)
 
     # Build tree structure using the adjusted paths
-    tree_structure = build_tree_structure(filtered_adjusted_files)
+    tree_structure = build_tree_structure(filtered_files, parent=path.as_posix())
 
     # Build markdown content
     markdown_content = []
@@ -126,7 +117,7 @@ def markdown(
         "generated_at": datetime.now().isoformat(),
         "repo_path": str(path.absolute()),
         "file_count": len(all_files),
-        "files_included": len(filtered_original_files),
+        "files_included": len(filtered_files),
     }
 
     markdown_content.append("---")
@@ -136,14 +127,14 @@ def markdown(
     markdown_content.append("---")
     markdown_content.append("")
 
-    # Repository title
-    repo_name = path.name.upper()
-    markdown_content.append(f"# {repo_name}")
-    markdown_content.append("")
-    markdown_content.append("---")
-    markdown_content.append("")
-
     if GIT_MODE:
+        # Repository title
+        repo_name = path.name.upper()
+        markdown_content.append(f"# {repo_name}")
+        markdown_content.append("")
+        markdown_content.append("---")
+        markdown_content.append("")
+
         # Git metadata section
         markdown_content.append("## Git Metadata")
         markdown_content.append("")
@@ -163,9 +154,7 @@ def markdown(
     markdown_content.append("")
 
     # File contents - iterate using both original and adjusted paths
-    for adj_path, orig_path in zip(
-        sorted(filtered_adjusted_files), sorted(filtered_original_files)
-    ):
+    for adj_path, orig_path in zip(sorted(filtered_files), sorted(filtered_files)):
         full_path = path / orig_path
         display_path = adj_path
 
@@ -202,7 +191,7 @@ def markdown(
         # File content
         markdown_content.append("#### Content")
         markdown_content.append("")
-        markdown_content.append("```")
+        markdown_content.append("```" + get_markdown_mapping(full_path))
 
         try:
             with open(
