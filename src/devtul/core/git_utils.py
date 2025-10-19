@@ -2,6 +2,7 @@
 Git-related utilities for devtul.
 """
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -16,7 +17,16 @@ from devtul.core.constants import IGNORE_PARTS, IGNORE_EXTENSIONS
 def get_git_files(
     repo_path: Path, include_empty: bool = False, only_empty: bool = False
 ) -> List[str]:
-    """Get list of files tracked by git in the repository, optionally filtering empty files."""
+    """
+    Get list of files tracked by git in the repository, optionally filtering empty files.
+    Args:
+        repo_path: Path to the git repository
+        include_empty: Whether to include empty files
+        only_empty: Whether to include only empty files
+    Returns:
+        List of git tracked file paths (strings)
+    """
+    (shell := os.name == "nt")
     if not repo_path.is_dir():
         typer.echo(f"Error: {repo_path} is not a valid directory", err=True)
         raise typer.Exit(1)
@@ -34,6 +44,7 @@ def get_git_files(
             capture_output=True,
             text=True,
             check=True,
+            shell=shell,
         )
         files = [f.strip() for f in result.stdout.splitlines() if f.strip()]
         for f in files:

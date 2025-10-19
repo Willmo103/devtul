@@ -25,9 +25,6 @@ def tree(
         callback=lambda v: Path(v).resolve(),
     ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
-    sub_dir: Optional[str] = typer.Option(
-        None, "--sub-dir", help="Specify a sub-directory to treat as the root"
-    ),
     match: List[str] = typer.Option(
         [],
         "-m",
@@ -60,16 +57,13 @@ def tree(
         raise typer.Exit(1)
 
     if not (path / ".git").exists():
-        all_files = get_all_files(path, include_empty=include_empty)
+        all_files = get_all_files(path, include_empty=include_empty, only_empty=False)
     else:
         # Get git files
-        all_files = get_git_files(path, include_empty)
-
-    # Process for sub-directory if provided, giving us adjusted paths for display/filtering
-    _, adjusted_files = process_paths_for_subdir(all_files, sub_dir)
+        all_files = get_git_files(path, include_empty=include_empty, only_empty=False)
 
     # Apply match/exclude filters to the adjusted paths
-    filtered_files = apply_filters(adjusted_files, match, exclude)
+    filtered_files = apply_filters(all_files, match, exclude)
 
     if not filtered_files:
         typer.echo("No files match the specified criteria", err=True)
