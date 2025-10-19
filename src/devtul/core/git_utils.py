@@ -63,9 +63,7 @@ def get_git_files(
                 return non_empty_files
         return files
     except subprocess.CalledProcessError as e:
-        typer.echo(
-            f"Error: Unable to get git files from {repo_path}", err=True
-        )
+        typer.echo(f"Error: Unable to get git files from {repo_path}", err=True)
         typer.echo(f"Git error: {e.stderr}", err=True)
         raise typer.Exit(1)
 
@@ -125,32 +123,19 @@ def format_git_metadata_table(metadata: dict) -> str:
     table_lines.append(
         f"| Current Branch | {metadata.get('current_branch', 'Unknown')} |"
     )
-    table_lines.append(
-        f"| Branches | {', '.join(metadata.get('branches', []))} |"
-    )
+    table_lines.append(f"| Branches | {', '.join(metadata.get('branches', []))} |")
 
-    if (
-        "latest_commit" in metadata
-        and "error" not in metadata["latest_commit"]
-    ):
+    if "latest_commit" in metadata and "error" not in metadata["latest_commit"]:
         commit = metadata["latest_commit"]
-        table_lines.append(
-            f"| Latest Commit | {commit.get('hash', 'Unknown')} |"
-        )
-        table_lines.append(
-            f"| Commit Message | {commit.get('message', 'Unknown')} |"
-        )
+        table_lines.append(f"| Latest Commit | {commit.get('hash', 'Unknown')} |")
+        table_lines.append(f"| Commit Message | {commit.get('message', 'Unknown')} |")
         table_lines.append(f"| Author | {commit.get('author', 'Unknown')} |")
-        table_lines.append(
-            f"| Commit Date | {commit.get('date', 'Unknown')} |"
-        )
+        table_lines.append(f"| Commit Date | {commit.get('date', 'Unknown')} |")
 
     table_lines.append(
         f"| Uncommitted Changes | {'Yes' if metadata.get('uncommitted_changes') else 'No'} |"
     )
-    table_lines.append(
-        f"| Untracked Files | {metadata.get('untracked_files', 0)} |"
-    )
+    table_lines.append(f"| Untracked Files | {metadata.get('untracked_files', 0)} |")
 
     if metadata.get("remotes"):
         remotes_str = ", ".join(

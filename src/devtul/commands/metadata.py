@@ -21,19 +21,6 @@ def git_meta(
         help="Path to the git repository",
         callback=lambda v: Path(v).resolve(),
     ),
-    print_output: bool = typer.Option(
-        False, "-p", "--print", help="Print output to STDOUT"
-    ),
-    encoding: str = typer.Option(
-        "utf8",
-        "--encoding",
-        help="Character encoding to use",
-        callback=lambda v: (
-            v
-            if v in ["utf8", "ascii", "utf16", "latin1"]
-            else typer.BadParameter("Invalid encoding")
-        ),
-    ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
     json_format: bool = typer.Option(
         False, "--json", help="Output as JSON instead of markdown table"
@@ -56,8 +43,7 @@ def git_meta(
 
     if not (path / ".git").exists():
         output = "Not a git repository"
-        should_print = print_output or (file is None)
-        write_output(output, file, encoding, should_print)
+        write_output(output, file)
         return
 
     # Get git metadata
@@ -69,8 +55,9 @@ def git_meta(
     else:
         output = format_git_metadata_table(git_metadata)
 
-    # Determine output behavior
-    should_print = print_output or (file is None)
+    if file is None:
+        print(output)
+        return
 
     # Write output
-    write_output(output, file, encoding, should_print)
+    write_output(output, file)

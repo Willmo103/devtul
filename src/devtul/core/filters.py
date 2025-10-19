@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List, Optional
 from os import walk
 
+
 def process_paths_for_subdir(
     files: List[str], sub_dir: Optional[str]
 ) -> tuple[List[str], List[str]]:

@@ -46,5 +46,3 @@ def list_scripts():
     scripts = scripts_dir.glob("*.py")
     for script in scripts:
         typer.echo(f" - {script.name}")
-
-

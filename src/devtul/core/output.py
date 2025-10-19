@@ -40,16 +40,12 @@ def build_tree_structure(files: List[str], parent: str = ".") -> str:
                 current = current[part]
 
     # Convert tree_dict to tree string
-    def render_tree(
-        node: dict, prefix: str = "", is_last: bool = True
-    ) -> List[str]:
+    def render_tree(node: dict, prefix: str = "", is_last: bool = True) -> List[str]:
         lines = []
 
         # Collect directories
         dirs = [
-            (k, v)
-            for k, v in node.items()
-            if k != "__files__" and isinstance(v, dict)
+            (k, v) for k, v in node.items() if k != "__files__" and isinstance(v, dict)
         ]
         dirs.sort(key=lambda x: x[0])
 
@@ -95,9 +91,7 @@ def build_tree_structure(files: List[str], parent: str = ".") -> str:
     return "\n".join(root_lines)
 
 
-def search_in_file(
-    file_path: Path, search_term: str, encoding: str
-) -> List[dict]:
+def search_in_file(file_path: Path, search_term: str, encoding: str) -> List[dict]:
     """Search for a term in a file and return matching lines with context."""
     matches = []
     try:

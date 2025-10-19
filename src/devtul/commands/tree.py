@@ -24,19 +24,6 @@ def tree(
         help="Path to the git repository",
         callback=lambda v: Path(v).resolve(),
     ),
-    print_output: bool = typer.Option(
-        False, "-p", "--print", help="Print output to STDOUT"
-    ),
-    encoding: str = typer.Option(
-        "utf8",
-        "--encoding",
-        help="Character encoding to use",
-        callback=lambda v: (
-            v
-            if v in ["utf8", "ascii", "utf16", "latin1"]
-            else typer.BadParameter("Invalid encoding")
-        ),
-    ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
     sub_dir: Optional[str] = typer.Option(
         None, "--sub-dir", help="Specify a sub-directory to treat as the root"
@@ -92,10 +79,12 @@ def tree(
     tree_output = build_tree_structure(filtered_files, parent=path.as_posix())
 
     # Determine output behavior
-    should_print = print_output or (file is None)
+    if file is None:
+        print(tree_output)
+        return
     output_file = file
     if file is not None and file == Path():
         output_file = Path.cwd() / "file_tree.md"
 
     # Write output
-    write_output(tree_output, output_file, encoding, should_print)
+    write_output(tree_output, output_file)

@@ -39,19 +39,6 @@ def markdown(
         help="Path to the git repository",
         callback=lambda v: Path(v).resolve(),
     ),
-    print_output: bool = typer.Option(
-        False, "-p", "--print", help="Print output to STDOUT"
-    ),
-    encoding: str = typer.Option(
-        "utf8",
-        "--encoding",
-        help="Character encoding to use",
-        callback=lambda v: (
-            v
-            if v in ["utf8", "ascii", "utf16", "latin1"]
-            else typer.BadParameter("Invalid encoding")
-        ),
-    ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
     match: List[str] = typer.Option(
         [],
@@ -121,9 +108,7 @@ def markdown(
     }
 
     markdown_content.append("---")
-    markdown_content.append(
-        yaml.dump(frontmatter, default_flow_style=False).strip()
-    )
+    markdown_content.append(yaml.dump(frontmatter, default_flow_style=False).strip())
     markdown_content.append("---")
     markdown_content.append("")
 
@@ -166,9 +151,7 @@ def markdown(
             try:
                 stat = full_path.stat()
                 file_size = stat.st_size
-                last_modified = datetime.fromtimestamp(
-                    stat.st_mtime
-                ).isoformat()
+                last_modified = datetime.fromtimestamp(stat.st_mtime).isoformat()
             except Exception:
                 file_size = "Unknown"
                 last_modified = "Unknown"
@@ -194,9 +177,7 @@ def markdown(
         markdown_content.append("```" + get_markdown_mapping(full_path))
 
         try:
-            with open(
-                full_path, "r", encoding=encoding, errors="replace"
-            ) as f:
+            with open(full_path, "r", encoding="utf8", errors="replace") as f:
                 content = f.read()
                 markdown_content.append(content)
         except Exception as e:
@@ -208,11 +189,10 @@ def markdown(
     # Join all content
     final_content = "\n".join(markdown_content)
 
-    # Determine output behavior
-    should_print = print_output or (file is None)
-    output_file = file
     if file is not None and file == Path():
         output_file = Path.cwd() / "flattened_repo.md"
+    else:
+        output_file = file
 
     # Write output
-    write_output(final_content, output_file, encoding, should_print)
+    write_output(final_content, output_file)

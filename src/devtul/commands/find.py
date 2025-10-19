@@ -84,9 +84,7 @@ def find(
     all_git_files = get_git_files(path, include_empty=False)
 
     # Process for sub-directory
-    original_files, adjusted_files = process_paths_for_subdir(
-        all_git_files, sub_dir
-    )
+    original_files, adjusted_files = process_paths_for_subdir(all_git_files, sub_dir)
 
     # Create a map to get original path from adjusted path
     path_map = dict(zip(adjusted_files, original_files))
@@ -109,9 +107,7 @@ def find(
         full_path = path / orig_path
         matches = search_in_file(full_path, term, encoding)
         for match in matches:
-            match["relative_path"] = (
-                adj_path  # Use the adjusted path for display
-            )
+            match["relative_path"] = adj_path  # Use the adjusted path for display
             all_matches.append(match)
 
     if not all_matches:
