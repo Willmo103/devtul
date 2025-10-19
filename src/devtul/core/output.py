@@ -3,33 +3,19 @@ Output handling utilities for devtul.
 """
 
 from pathlib import Path
-from typing import List, Optional
-
+from typing import List
 import typer
 
 
-def write_output(
-    content: str, file_path: Optional[Path], encoding: str, print_output: bool
-):
+def write_output(content: str, file_path: Path):
     """Write content to file and/or stdout based on options."""
-    if print_output:
-        if encoding != "utf8":
-            content = content.encode(encoding, errors="ignore").decode(
-                encoding, errors="ignore"
-            )
-        typer.echo(content)
-
-    if file_path:
-        try:
-            with open(file_path, "w", encoding=encoding) as f:
-                f.write(content)
-            if (
-                not print_output
-            ):  # Only show file message if not printing to stdout
-                typer.echo(f"Output written to: {file_path}")
-        except Exception as e:
-            typer.echo(f"Error writing to file {file_path}: {e}", err=True)
-            raise typer.Exit(1)
+    try:
+        with open(file_path, "w", encoding="utf8") as f:
+            f.write(content)
+        typer.echo(f"Output written to: {file_path}")
+    except Exception as e:
+        typer.echo(f"Error writing to file {file_path}: {e}", err=True)
+        raise typer.Exit(1)
 
 
 def build_tree_structure(files: List[str], parent: str = ".") -> str:

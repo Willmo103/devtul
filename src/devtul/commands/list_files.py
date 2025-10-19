@@ -8,11 +8,9 @@ from typing import List, Optional
 import typer
 
 from devtul.core.file_utils import get_all_files
-
-from ..core import (
+from devtul.core import (
     apply_filters,
     get_git_files,
-    process_paths_for_subdir,
     write_output,
 )
 
@@ -20,9 +18,6 @@ from ..core import (
 def ls(
     path: Path = typer.Argument(
         Path().cwd().resolve(), help="Path to the git repository"
-    ),
-    print_output: bool = typer.Option(
-        False, "-p", "--print", help="Print output to STDOUT"
     ),
     encoding: str = typer.Option(
         "utf8",
@@ -35,11 +30,6 @@ def ls(
         ),
     ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
-    sub_dir: Optional[List[str]] = typer.Option(
-        None,
-        "--sub-dir",
-        help="Specify one or more sub-directories to treat as the root",
-    ),
     match: List[str] = typer.Option(
         [],
         "-m",
@@ -54,6 +44,9 @@ def ls(
     ),
     include_empty: bool = typer.Option(
         False, "--empty/--no-empty", help="Include empty files"
+    ),
+    only_empty: bool = typer.Option(
+        False, "--only-empty", help="Only include empty files"
     ),
 ):
     """
@@ -87,8 +80,9 @@ def ls(
     # Create output
     output = "\n".join(sorted(filtered_files))
 
-    # Determine output behavior
-    should_print = print_output or (file is None)
-
-    # Write output
-    write_output(output, file, encoding, should_print)
+    if file is None:
+        # Print to stdout
+        typer.echo(output)
+    else:
+        # Write output
+        write_output(output, file)

@@ -2,6 +2,7 @@
 Git-related utilities for devtul.
 """
 
+import shutil
 import subprocess
 from pathlib import Path
 from typing import List
@@ -9,11 +10,24 @@ from typing import List
 import git
 import typer
 
-from .constants import IGNORE_PARTS, IGNORE_EXTENSIONS
+from devtul.core.constants import IGNORE_PARTS, IGNORE_EXTENSIONS
 
 
-def get_git_files(repo_path: Path, include_empty: bool = False) -> List[str]:
+def get_git_files(
+    repo_path: Path, include_empty: bool = False, only_empty: bool = False
+) -> List[str]:
     """Get list of files tracked by git in the repository, optionally filtering empty files."""
+    if not repo_path.is_dir():
+        typer.echo(f"Error: {repo_path} is not a valid directory", err=True)
+        raise typer.Exit(1)
+    if not (repo_path / ".git").exists():
+        typer.echo(f"Error: {repo_path} is not a git repository", err=True)
+        raise typer.Exit(1)
+    if not shutil.which("git"):
+        typer.echo("Error: git is not installed or not found in PATH", err=True)
+        raise typer.Exit(1)
+    if only_empty:
+        include_empty = True
     try:
         result = subprocess.run(
             ["git", "-C", str(repo_path), "ls-files"],
@@ -22,24 +36,31 @@ def get_git_files(repo_path: Path, include_empty: bool = False) -> List[str]:
             check=True,
         )
         files = [f.strip() for f in result.stdout.splitlines() if f.strip()]
+        for f in files:
+            if any(ign in f for ign in IGNORE_PARTS):
+                files.remove(f)
+                continue
+            if any(f.endswith(ext) for ext in IGNORE_EXTENSIONS):
+                files.remove(f)
+                continue
 
         if not include_empty:
-            # Filter out empty files
-            non_empty_files = []
-            for file_path in files:
-                if any(ign in file_path for ign in IGNORE_PARTS):
-                    continue
-                if any(file_path.endswith(ext) for ext in IGNORE_EXTENSIONS):
-                    continue
-                full_path = repo_path / file_path
-                try:
-                    if full_path.exists() and full_path.stat().st_size > 0:
-                        non_empty_files.append(file_path)
-                except Exception:
-                    # If we can't check the file, include it anyway
-                    non_empty_files.append(file_path)
-            files = non_empty_files
-
+            if only_empty:
+                # Get only empty files
+                empty_files = []
+                for f in files:
+                    file_path = repo_path / f
+                    if file_path.is_file() and file_path.stat().st_size == 0:
+                        empty_files.append(f)
+                return empty_files
+            else:
+                # Exclude empty files
+                non_empty_files = []
+                for f in files:
+                    file_path = repo_path / f
+                    if file_path.is_file() and file_path.stat().st_size > 0:
+                        non_empty_files.append(f)
+                return non_empty_files
         return files
     except subprocess.CalledProcessError as e:
         typer.echo(

@@ -100,21 +100,50 @@ def should_ignore_path(
 
     return False
 
-def find_all_parents_containing_marker(
-    root: Path, file_marker: Optional[str], dir_marker: Optional[str]
+
+def find_all_dirs_containing_marker_folder(
+    root: Path, dir_marker: Optional[str]
 ) -> List[Path]:
     """
-    Find all parent directories under root that contain files matching the marker.
+    Find all parent directories under root that contain folders matching the marker.
 
     Args:
         root: Root directory to start the search
-        file_marker: Filename pattern to look for (e.g., ".gitignore")
         dir_marker: Directory name pattern to look for (e.g., "src")
 
     Returns:
-        List of parent directories (Paths) that contain matching files
+        List of parent directories (Paths) that contain matching folders
     """
     matching_parents = set()
 
     for dirpath, dirnames, filenames in walk(root):
-        for
+        for dirname in dirnames:
+            if fnmatch.fnmatch(dirname, dir_marker):
+                matching_parents.add(Path(dirpath) / dirname)
+                break  # No need to check other directories in this path
+
+    return sorted(matching_parents)
+
+
+def find_all_dirs_containing_marker_file(
+    root: Path, file_marker: Optional[str]
+) -> List[Path]:
+    """
+    Find all directories under root that contain files matching the marker.
+
+    Args:
+        root: Root directory to start the search
+        file_marker: Filename pattern to look for (e.g., ".gitignore")
+
+    Returns:
+        List of directories (Paths) that contain matching files
+    """
+    matching_dirs = set()
+
+    for dirpath, dirnames, filenames in walk(root):
+        for filename in filenames:
+            if fnmatch.fnmatch(filename, file_marker):
+                matching_dirs.add(Path(dirpath))
+                break  # No need to check other files in this path
+
+    return sorted(matching_dirs)

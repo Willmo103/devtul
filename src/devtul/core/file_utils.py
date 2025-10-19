@@ -1,5 +1,6 @@
 from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS
 from devtul.core.filters import should_ignore_path
+from devtul.core.config import EDITOR
 
 from typing import List, Optional
 
@@ -11,6 +12,7 @@ def get_all_files(
     ignore_parts: Optional[List[str]] = None,
     ignore_patterns: Optional[List[str]] = None,
     include_empty: bool = False,
+    only_empty: bool = False,
 ) -> List[str]:
     """
     Get all files in a directory recursively, filtering by ignore patterns.
@@ -32,18 +34,34 @@ def get_all_files(
         ignore_patterns = IGNORE_EXTENSIONS
 
     for path in path.rglob("*"):
-        if path.is_file():
+        if path.is_file() and (file_size := path.stat().st_size) is not None:
             if should_ignore_path(
-                path.relative_to(path), ignore_parts, ignore_patterns
+                path, ignore_parts=ignore_parts, ignore_patterns=ignore_patterns
             ):
                 continue
-            if not include_empty:
-                try:
-                    if path.stat().st_size == 0:
-                        continue
-                except Exception:
-                    # If we can't check the file, include it anyway
-                    pass
+            if file_size == 0:
+                if only_empty:
+                    all_files.append(str(path.relative_to(path.parent.parent)))
+                elif not include_empty:
+                    continue
+                all_files.append(str(path.relative_to(path.parent.parent)))
             else:
-                all_files.append((path.relative_to(path)).replace("\\", "/"))
-    return all_files
+                all_files.append(str(path.relative_to(path.parent.parent)))
+
+    return sorted(all_files)
+
+
+def edit_file_in_editor(file_path: Path) -> None:
+    """
+    Open a file in the specified editor.
+
+    Args:
+        file_path: Path to the file to edit
+        editor_cmd: Command to launch the editor (e.g., "nano", "code", etc.)
+    """
+    import subprocess
+
+    if EDITOR is None:
+        raise ValueError("No editor specified. Please set the EDITOR variable.")
+
+    subprocess.run([EDITOR, str(file_path)])
