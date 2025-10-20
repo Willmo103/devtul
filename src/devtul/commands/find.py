@@ -8,6 +8,8 @@ from typing import List, Optional
 
 import typer
 
+from devtul.core.file_utils import get_all_files
+
 from ..core import (
     apply_filters,
     get_git_files,
@@ -22,23 +24,7 @@ def find(
     path: Path = typer.Option(
         Path().cwd().resolve(), help="Path to the git repository"
     ),
-    print_output: bool = typer.Option(
-        False, "-p", "--print", help="Print output to STDOUT"
-    ),
-    encoding: str = typer.Option(
-        "utf8",
-        "--encoding",
-        help="Character encoding to use",
-        callback=lambda v: (
-            v
-            if v in ["utf8", "ascii", "utf16", "latin1"]
-            else typer.BadParameter("Invalid encoding")
-        ),
-    ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
-    sub_dir: Optional[str] = typer.Option(
-        None, "--sub-dir", help="Specify a sub-directory to treat as the root"
-    ),
     match: List[str] = typer.Option(
         [],
         "-m",
@@ -59,6 +45,9 @@ def find(
         "--ignore-case/--no-ignore-case",
         help="Case insensitive search (default true)",
     ),
+    git: bool = typer.Option(
+        True, "--git/--no-git", help="look for git files or all files"
+    ),
 ):
     """
     Search for a term within git tracked files.
@@ -76,10 +65,8 @@ def find(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if not (path / ".git").exists():
-        typer.echo(f"Error: {path} is not a git repository", err=True)
-        raise typer.Exit(1)
-
+    if not git or not (path / ".git").exists():
+        all_files = get_all_files(path, include_empty=False)
     # Get git files (always exclude empty for searching)
     all_git_files = get_git_files(path, include_empty=False)
 

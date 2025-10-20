@@ -1,12 +1,13 @@
 from contextlib import contextmanager
 import psycopg2 as pg
-import devtul.core.config as config  # noqa: F401
-from os import environ as env
+from devtul.core.config import INTERFACE_DB_URL
+# from devtul.core.db import database
+
 
 
 @contextmanager
 def session():
-    conn = pg.connect(env["INTERFACE_DB_URL"])
+    conn = pg.connect(INTERFACE_DB_URL)
     try:
         yield conn
     finally:

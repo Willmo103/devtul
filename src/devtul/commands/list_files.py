@@ -68,9 +68,11 @@ def ls(
         all_files = get_all_files(
             path, include_empty=include_empty, only_empty=only_empty
         )
-
-    # Get git files
-    all_files = get_git_files(path, include_empty=include_empty, only_empty=only_empty)
+    else:
+        # Get git files
+        all_files = get_git_files(
+            path, include_empty=include_empty, only_empty=only_empty
+        )
 
     # Apply match/exclude filters
     filtered_files = apply_filters(all_files, match, exclude)

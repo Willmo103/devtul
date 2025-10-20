@@ -11,16 +11,15 @@ import yaml
 
 from devtul.core.file_utils import get_all_files
 
-from ..core import (
+from devtul.core import (
     apply_filters,
     build_tree_structure,
     format_git_metadata_table,
     get_git_files,
     get_git_metadata,
-    process_paths_for_subdir,
     write_output,
 )
-from ..core.constants import MD_XREF
+from devtul.core.constants import MD_XREF
 
 
 def get_markdown_mapping(file_path: str | Path) -> str:
@@ -58,6 +57,9 @@ def markdown(
     file_meta: bool = typer.Option(
         True, "--filemeta/--no-filemeta", help="Include file metadata tables"
     ),
+    git: bool = typer.Option(
+        True, "--git/--no-git", help="look for git files or all files"
+    ),
 ):
     """
     Generate a comprehensive markdown documentation from git repository.
@@ -75,7 +77,7 @@ def markdown(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if not (path / ".git").exists():
+    if not git or not (path / ".git").exists():
         GIT_MODE = False
         all_files = get_all_files(path, include_empty=include_empty)
 

@@ -7,6 +7,7 @@ from .list_files import ls
 from .markdown import markdown
 from .metadata import git_meta
 from .tree import tree
+from .dirs import find_folder
 
 __all__ = [
     "find",
@@ -14,4 +15,5 @@ __all__ = [
     "ls",
     "markdown",
     "tree",
+    "find_folder",
 ]

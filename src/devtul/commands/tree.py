@@ -40,6 +40,9 @@ def tree(
     include_empty: bool = typer.Option(
         False, "--empty/--no-empty", help="Include empty files"
     ),
+    git: bool = typer.Option(
+        True, "--git/--no-git", help="Look for git tracked files or all files"
+    ),
 ):
     """
     Generate a tree structure from git tracked files.
@@ -56,7 +59,7 @@ def tree(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if not (path / ".git").exists():
+    if not git or not (path / ".git").exists():
         all_files = get_all_files(path, include_empty=include_empty, only_empty=False)
     else:
         # Get git files
