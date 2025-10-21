@@ -80,9 +80,9 @@ def markdown(
     if not git or not (path / ".git").exists():
         GIT_MODE = False
         all_files = get_all_files(path, include_empty=include_empty)
-
-    # Get all git files
-    all_files = get_git_files(path, include_empty)
+    else:
+        # Get all git files
+        all_files = get_git_files(path, include_empty)
 
     # Apply match/exclude filters on the adjusted paths
     filtered_files = apply_filters(all_files, match, exclude)

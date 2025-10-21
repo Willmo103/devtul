@@ -25,9 +25,6 @@ def git_meta(
     json_format: bool = typer.Option(
         False, "--json", help="Output as JSON instead of markdown table"
     ),
-    git: bool = typer.Option(
-        True, "--git/--no-git", help="look for git files or all files"
-    ),
 ):
     """
     Display git repository metadata.
@@ -44,9 +41,8 @@ def git_meta(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if not git or not (path / ".git").exists():
-        output = "Not a git repository"
-        write_output(output, file)
+    if git and not (path / ".git").exists():
+        print("Not a git repository")
         return
 
     # Get git metadata
@@ -61,6 +57,6 @@ def git_meta(
     if file is None:
         print(output)
         return
-
-    # Write output
-    write_output(output, file)
+    else:
+        # Write output
+        write_output(output, file)
