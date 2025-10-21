@@ -7,7 +7,7 @@ from typing import List
 import typer
 
 
-def write_output(content: str, file_path: Path):
+def write_to_file(content: str, file_path: Path):
     """Write content to file and/or stdout based on options."""
     try:
         with open(file_path, "w", encoding="utf8") as f:

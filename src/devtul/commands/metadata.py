@@ -11,7 +11,7 @@ import typer
 from ..core import (
     format_git_metadata_table,
     get_git_metadata,
-    write_output,
+    write_to_file,
 )
 
 
@@ -59,4 +59,4 @@ def git_meta(
         return
     else:
         # Write output
-        write_output(output, file)
+        write_to_file(output, file)

@@ -14,7 +14,7 @@ from ..core import (
     build_tree_structure,
     get_git_files,
     process_paths_for_subdir,
-    write_output,
+    write_to_file,
 )
 
 
@@ -84,4 +84,4 @@ def tree(
         output_file = Path.cwd() / "file_tree.md"
 
     # Write output
-    write_output(tree_output, output_file)
+    write_to_file(tree_output, output_file)

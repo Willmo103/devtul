@@ -17,7 +17,7 @@ from devtul.core import (
     format_git_metadata_table,
     get_git_files,
     get_git_metadata,
-    write_output,
+    write_to_file,
 )
 from devtul.core.constants import MD_XREF
 
@@ -193,8 +193,6 @@ def markdown(
 
     if file is not None and file == Path():
         output_file = Path.cwd() / "flattened_repo.md"
+        write_to_file(final_content, output_file)
     else:
-        output_file = file
-
-    # Write output
-    write_output(final_content, output_file)
+        print(final_content)

@@ -15,7 +15,7 @@ from ..core import (
     get_git_files,
     process_paths_for_subdir,
     search_in_file,
-    write_output,
+    write_to_file,
 )
 
 
@@ -132,4 +132,4 @@ def find(
     should_print = print_output or (file is None)
 
     # Write output
-    write_output(output, file, encoding, should_print)
+    write_to_file(output, file, encoding, should_print)

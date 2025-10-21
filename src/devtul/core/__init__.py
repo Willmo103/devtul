@@ -17,7 +17,7 @@ from .git_utils import (
 from .output import (
     build_tree_structure,
     search_in_file,
-    write_output,
+    write_to_file,
 )
 
 __all__ = [
@@ -32,5 +32,5 @@ __all__ = [
     "process_paths_for_subdir",
     "search_in_file",
     "should_ignore_path",
-    "write_output",
+    "write_to_file",
 ]

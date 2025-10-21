@@ -11,7 +11,7 @@ from devtul.core.file_utils import get_all_files
 from devtul.core import (
     apply_filters,
     get_git_files,
-    write_output,
+    write_to_file,
 )
 
 
@@ -89,4 +89,4 @@ def ls(
         typer.echo(output)
     else:
         # Write output
-        write_output(output, file)
+        write_to_file(output, file)
