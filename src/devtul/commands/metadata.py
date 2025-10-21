@@ -41,7 +41,7 @@ def git_meta(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if git and not (path / ".git").exists():
+    if not (path / ".git").exists():
         print("Not a git repository")
         return
 

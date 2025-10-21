@@ -19,16 +19,6 @@ def ls(
     path: Path = typer.Argument(
         Path().cwd().resolve(), help="Path to the git repository"
     ),
-    encoding: str = typer.Option(
-        "utf8",
-        "--encoding",
-        help="Character encoding to use",
-        callback=lambda v: (
-            v
-            if v in ["utf8", "ascii", "utf16", "latin1"]
-            else typer.BadParameter("Invalid encoding")
-        ),
-    ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
     match: List[str] = typer.Option(
         [],
@@ -48,6 +38,18 @@ def ls(
     only_empty: bool = typer.Option(
         False, "--only-empty", help="Only include empty files"
     ),
+    git: bool = typer.Option(
+        True, "--git/--no-git", help="look for git files or all files"
+    ),
+    json: bool = typer.Option(
+        False, "--json", help="Output as JSON instead of plain text"
+    ),
+    yaml: bool = typer.Option(
+        False, "--yaml", help="Output as YAML instead of plain text"
+    ),
+    csv: bool = typer.Option(
+        False, "--csv", help="Output as CSV instead of plain text"
+    ),
 ):
     """
     List git tracked files with optional filtering.
@@ -64,13 +66,19 @@ def ls(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if not (path / ".git").exists():
+    if git:
+        if not (path / ".git").exists():
+            all_files = get_all_files(
+                path, include_empty=include_empty, only_empty=only_empty
+            )
+        else:
+            # Get git files
+            all_files = get_git_files(
+                path, include_empty=include_empty, only_empty=only_empty
+            )
+    if not git:
+        # Get all files
         all_files = get_all_files(
-            path, include_empty=include_empty, only_empty=only_empty
-        )
-    else:
-        # Get git files
-        all_files = get_git_files(
             path, include_empty=include_empty, only_empty=only_empty
         )
 
@@ -82,7 +90,23 @@ def ls(
         raise typer.Exit(1)
 
     # Create output
-    output = "\n".join(sorted(filtered_files))
+    if json:
+        output = typer.style("[", fg=typer.colors.GREEN)
+        for i, f in enumerate(sorted(filtered_files)):
+            output += typer.style(f'"{f}"', fg=typer.colors.YELLOW)
+            if i < len(filtered_files) - 1:
+                output += typer.style(",", fg=typer.colors.GREEN)
+        output += typer.style("]", fg=typer.colors.GREEN)
+    elif yaml:
+        output = f"path: {path.as_posix()}\n  files:\n"
+        for f in sorted(filtered_files):
+            output += f"    - {f}\n"
+    elif csv:
+        output = f"files - {path.as_posix()}\n"
+        for f in sorted(filtered_files):
+            output += f"'{f.replace("\\", "/")}'\n"
+    else:
+        output = "\n".join(sorted(filtered_files))
 
     if file is None:
         # Print to stdout

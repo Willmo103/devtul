@@ -1,8 +1,8 @@
 from contextlib import contextmanager
 import psycopg2 as pg
 from devtul.core.config import INTERFACE_DB_URL
-# from devtul.core.db import database
 
+# from devtul.core.db import database
 
 
 @contextmanager

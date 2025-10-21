@@ -67,11 +67,11 @@ def find(
 
     if not git or not (path / ".git").exists():
         all_files = get_all_files(path, include_empty=False)
-    # Get git files (always exclude empty for searching)
-    all_git_files = get_git_files(path, include_empty=False)
+
+    all_files = get_git_files(path, include_empty=False)
 
     # Process for sub-directory
-    original_files, adjusted_files = process_paths_for_subdir(all_git_files, sub_dir)
+    original_files, adjusted_files = process_paths_for_subdir(all_files, sub_dir)
 
     # Create a map to get original path from adjusted path
     path_map = dict(zip(adjusted_files, original_files))
@@ -129,7 +129,7 @@ def find(
             output = "\n".join(table_lines)
 
     # Determine output behavior
-    should_print = print_output or (file is None)
-
-    # Write output
-    write_to_file(output, file, encoding, should_print)
+    if file is not None:
+        write_to_file(output, file)
+    else:
+        typer.echo(output)

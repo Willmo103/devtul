@@ -21,3 +21,9 @@ GIT_CONFIG: Optional[Path] = (
     (Path().home() / ".gitconfig") if Path().home().exists() else None
 )
 TEMPLATES_DIR = app_root / "templates"
+
+print(DOT_ENV_PATH.exists())  # Debug line to check if .env is loaded
+if SSH_PATH:
+    print(SSH_PATH.exists())  # Debug line to check if .ssh path is correct
+if GIT_CONFIG:
+    print(GIT_CONFIG.exists())  # Debug line to check if .gitconfig path is correct

@@ -3,6 +3,7 @@ Constants used throughout the devtul package.
 """
 
 # Patterns for file parts to ignore (matched anywhere in path)
+import enum
 from typing import List
 
 
@@ -378,3 +379,11 @@ MD_XREF = {
     ".yaml": "yaml",
     ".yml": "yaml",
 }
+
+
+class OutputFormats(str, enum.Enum):
+    """Enumeration of supported output formats."""
+
+    JSON = "json"
+    YAML = "yaml"
+    CSV = "csv"

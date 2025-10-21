@@ -18,7 +18,6 @@ def get_db():
         db.close()
 
 
-
 @contextmanager
 def get_postgres_session():
     conn = pg.connect(INTERFACE_DB_URL)
