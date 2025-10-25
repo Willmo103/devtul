@@ -1,0 +1,33 @@
+---
+title: "{{ obj.current_branch }} - Repository Overview"
+date: "{{ obj.latest_commit.date }}"
+tags: [repository, git, overview]
+---
+
+# Repository Overview
+
+This note provides an overview of the Git repository as of the latest commit.
+
+## Repository Information
+
+**Current Branch:** `{{ obj.current_branch }}`
+**Latest Commit:**
+   **Hash:** `{{ obj.latest_commit.hash }}`
+   **Message:** ```{{ obj.latest_commit.message }}```
+   **Author:** {{ obj.latest_commit.author }}
+   **Date:** {{ obj.latest_commit.date }}
+**Remotes:**
+{% for remote, url in obj.remotes.items() %}   **{{ remote }}:** {{ url }}{% endfor %}
+**Branches:**
+{% for branch in obj.branches %}   {{ branch }}{% endfor %}
+**Uncommitted Changes:** {% if obj.uncommitted_changes %}Yes{% else %}No{% endif %}
+**Untracked Files:** {{ obj.untracked_files }}
+
+## Notes
+
+{% if obj.uncommitted_changes %}**Warning:** There are uncommitted changes.  Consider committing them or stashing them.{% endif %}
+{% if obj.untracked_files > 0 %}**Note:** There are {{ obj.untracked_files }} untracked files.  Consider adding them to the repository or ignoring them in `.gitignore`.{% endif %}
+
+<!--
+This note is automatically generated from Git metadata.  Do not edit manually.
+-->

@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Optional
 
 import typer
-import yaml
 
 from devtul.core.utils import render_template
 from ..core import format_git_metadata_table, get_git_metadata, write_to_file
@@ -21,7 +20,13 @@ def git_meta(
     ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
     json_format: bool = typer.Option(
-        False, "--json", help="Output as JSON instead of markdown table"
+        False, "-j/--json", help="Output as JSON instead of markdown table"
+    ),
+    yaml_format: bool = typer.Option(
+        False, "-y/--yml/--yaml", help="Output as YAML instead of markdown table"
+    ),
+    markdown: bool = typer.Option(
+        False, "-md/--markdown", help="Output as markdown using template"
     ),
 ):
     """
@@ -47,16 +52,18 @@ def git_meta(
         return
 
     # Format output
-    # if json_format:
-    #     output = git_metadata.model_dump_json(indent=4)
-    # else:
-    #     output = format_git_metadata_table(git_metadata)
+    if json_format:
+        output = git_metadata.model_dump_json(indent=4)
+    elif yaml_format:
+        output = git_metadata.to_yaml()
+    elif markdown:
+        output = render_template("git_meta.md.jinja", obj=git_metadata)
+    else:
+        output = format_git_metadata_table(git_metadata)
 
-    render_template("git_yaml.yml.jinja", obj=git_metadata.model_dump())
-
-    # if file is None:
-    #     print(output)
-    #     return
-    # else:
-    #     # Write output
-    #     write_to_file(output, file)
+    if file is None:
+        print(output)
+        return
+    else:
+        # Write output
+        write_to_file(output, file)

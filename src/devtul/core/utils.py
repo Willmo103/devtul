@@ -1,9 +1,8 @@
 import json
-from typing import Any, Dict, Optional
-
-import yaml
-from jinja2 import Template
 from pydantic import BaseModel
+from typing import Any, Dict, Optional
+from jinja2 import Template
+import yaml
 
 
 def serialize(
