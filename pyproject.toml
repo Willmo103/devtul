@@ -9,6 +9,7 @@ description = "A collection of developer tools for working with git repositories
 authors = [
     { name = "Will Morris", email = "willmorris103@gmail.com" },
 ]
+repository = "https://github.com/willmo103/devtul"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.13"

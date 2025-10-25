@@ -4,9 +4,10 @@ Constants used throughout the devtul package.
 
 # Patterns for file parts to ignore (matched anywhere in path)
 import enum
+from pathlib import Path
 from typing import List
 
-
+TEMPLATES_DIR = (Path(__file__).parent / "templates").resolve()
 IGNORE_PARTS: List[str] = [
     ".hg",
     ".svn",

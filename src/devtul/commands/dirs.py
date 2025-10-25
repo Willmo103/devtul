@@ -1,5 +1,5 @@
 from devtul.core.file_utils import (
-    find_all_dirs_containing_marker_file,
+    find_all_dirs_containing_file,
     find_all_dirs_containing_marker_folder,
 )
 from devtul.core.filters import should_ignore_path
@@ -18,24 +18,21 @@ def find_folder(
     with_file: Optional[str] = typer.Option(
         None, "--with-file", help="Filename pattern to look for"
     ),
-    filter: bool = typer.Option(True, "--filter/--all", help="Apply filtering"),
+    recurse: Optional[bool] = typer.Option(
+        None, "-r/--recurse", help="Recurse into subdirectories"
+    ),
 ) -> Optional[List[Path]]:
     """
     Find directories containing a specific marker file or folder.
     """
+    found = []
     if with_dir:
-        files = find_all_dirs_containing_marker_folder(root, with_dir)
+        files = find_all_dirs_containing_marker_folder(root, with_dir, recurse=recurse)
         for f in files:
-            if filter and should_ignore_path(f):
-                continue
-            else:
-                typer.echo(f.resolve().as_posix())
+            found.append(f)
     if with_file:
-        files = find_all_dirs_containing_marker_file(root, with_file)
+        files = find_all_dirs_containing_file(root, with_file, recurse=recurse)
         for f in files:
-            if filter and should_ignore_path(f):
-                continue
-            else:
-                typer.echo(f.resolve().as_posix())
-
-    return None
+            found.append(f)
+    for f in found:
+        typer.echo(f.as_posix())

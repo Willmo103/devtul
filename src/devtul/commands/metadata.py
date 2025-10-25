@@ -41,16 +41,16 @@ def git_meta(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if not (path / ".git").exists():
+    if (path / ".git").exists():
+        # Get git metadata
+        git_metadata = get_git_metadata(path)
+    else:
         print("Not a git repository")
         return
 
-    # Get git metadata
-    git_metadata = get_git_metadata(path)
-
     # Format output
     if json_format:
-        output = json.dumps(git_metadata, indent=2, default=str)
+        output = git_metadata.model_dump_json(indent=4)
     else:
         output = format_git_metadata_table(git_metadata)
 

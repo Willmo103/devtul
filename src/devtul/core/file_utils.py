@@ -70,7 +70,7 @@ def edit_file_in_editor(file_path: Path) -> None:
 
 
 def find_all_dirs_containing_marker_folder(
-    root: Path, dir_marker: Optional[str]
+    root: Path, dir_marker: Optional[str], recurse: bool = False
 ) -> List[Path]:
     """
     Find all parent directories under root that contain folders matching the marker.
@@ -87,14 +87,15 @@ def find_all_dirs_containing_marker_folder(
     for dirpath, dirnames, filenames in walk(root):
         for dirname in dirnames:
             if fnmatch.fnmatch(dirname, dir_marker):
-                matching_parents.add(Path(dirpath) / dirname)
-                break  # No need to check other directories in this path
+                matching_parents.add((Path(dirpath) / dirname).parent.resolve())
+                if not recurse:
+                    break  # No need to check other directories in this path
 
     return sorted(matching_parents)
 
 
-def find_all_dirs_containing_marker_file(
-    root: Path, file_marker: Optional[str]
+def find_all_dirs_containing_file(
+    root: Path, file_marker: Optional[str], recurse: bool = False
 ) -> List[Path]:
     """
     Find all directories under root that contain files matching the marker.
@@ -111,7 +112,8 @@ def find_all_dirs_containing_marker_file(
     for dirpath, dirnames, filenames in walk(root):
         for filename in filenames:
             if fnmatch.fnmatch(filename, file_marker):
-                matching_dirs.add(Path(dirpath))
-                break  # No need to check other files in this path
+                matching_dirs.add(Path(dirpath).parent.resolve())
+                if not recurse:
+                    break  # No need to check other files in this path
 
     return sorted(matching_dirs)
