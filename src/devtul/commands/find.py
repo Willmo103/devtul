@@ -10,13 +10,8 @@ import typer
 
 from devtul.core.file_utils import get_all_files
 
-from ..core import (
-    apply_filters,
-    get_git_files,
-    process_paths_for_subdir,
-    search_in_file,
-    write_to_file,
-)
+from ..core import (apply_filters, get_git_files, process_paths_for_subdir,
+                    search_in_file, write_to_file)
 
 
 def find(

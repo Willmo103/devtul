@@ -5,8 +5,7 @@ DevTul - A collection of developer tools for working with git repositories.
 __version__ = "0.1.5"
 import typer
 
-from .commands import find, git_meta, ls, markdown, tree, find_folder, empty
-
+from .commands import empty, find, find_folder, git_meta, ls, markdown, tree
 
 app = typer.Typer(
     name="devtul",

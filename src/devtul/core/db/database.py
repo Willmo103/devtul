@@ -1,8 +1,10 @@
 from contextlib import contextmanager
-from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy import create_engine
-from devtul.core.config import INTERFACE_DB_URL
+
 import psycopg2 as pg
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+from devtul.core.config import INTERFACE_DB_URL
 
 Base = declarative_base()
 engine = create_engine(INTERFACE_DB_URL)

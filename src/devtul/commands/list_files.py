@@ -7,12 +7,8 @@ from typing import List, Optional
 
 import typer
 
+from devtul.core import apply_filters, get_git_files, write_to_file
 from devtul.core.file_utils import get_all_files
-from devtul.core import (
-    apply_filters,
-    get_git_files,
-    write_to_file,
-)
 
 
 def ls(

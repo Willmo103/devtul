@@ -9,17 +9,11 @@ from typing import List, Optional
 import typer
 import yaml
 
-from devtul.core.file_utils import get_all_files
-
-from devtul.core import (
-    apply_filters,
-    build_tree_structure,
-    format_git_metadata_table,
-    get_git_files,
-    get_git_metadata,
-    write_to_file,
-)
+from devtul.core import (apply_filters, build_tree_structure,
+                         format_git_metadata_table, get_git_files,
+                         get_git_metadata, write_to_file)
 from devtul.core.constants import MD_XREF
+from devtul.core.file_utils import get_all_files
 
 
 def get_markdown_mapping(file_path: str | Path) -> str:

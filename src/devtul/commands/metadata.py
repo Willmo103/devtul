@@ -2,17 +2,15 @@
 Metadata command for devtul - displays git repository metadata.
 """
 
-import json
+# import json
 from pathlib import Path
 from typing import Optional
 
 import typer
+import yaml
 
-from ..core import (
-    format_git_metadata_table,
-    get_git_metadata,
-    write_to_file,
-)
+from devtul.core.utils import render_template
+from ..core import format_git_metadata_table, get_git_metadata, write_to_file
 
 
 def git_meta(
@@ -49,14 +47,16 @@ def git_meta(
         return
 
     # Format output
-    if json_format:
-        output = git_metadata.model_dump_json(indent=4)
-    else:
-        output = format_git_metadata_table(git_metadata)
+    # if json_format:
+    #     output = git_metadata.model_dump_json(indent=4)
+    # else:
+    #     output = format_git_metadata_table(git_metadata)
 
-    if file is None:
-        print(output)
-        return
-    else:
-        # Write output
-        write_to_file(output, file)
+    render_template("git_yaml.yml.jinja", obj=git_metadata.model_dump())
+
+    # if file is None:
+    #     print(output)
+    #     return
+    # else:
+    #     # Write output
+    #     write_to_file(output, file)

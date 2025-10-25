@@ -1,12 +1,11 @@
 import fnmatch
 from os import walk
-from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS
-from devtul.core.filters import should_ignore_path
-from devtul.core.config import EDITOR
-
+from pathlib import Path
 from typing import List, Optional
 
-from pathlib import Path
+from devtul.core.config import EDITOR
+from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS
+from devtul.core.filters import should_ignore_path
 
 
 def get_all_files(

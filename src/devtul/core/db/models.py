@@ -1,9 +1,11 @@
 import json
 from typing import Optional
-from sqlalchemy import ForeignKeyConstraint, String, Integer
-from devtul.core.db.database import Base
-from sqlalchemy.orm import Mapped, mapped_column
+
 import yaml
+from sqlalchemy import ForeignKeyConstraint, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from devtul.core.db.database import Base
 
 
 class Repo(Base):

@@ -4,6 +4,7 @@ Output handling utilities for devtul.
 
 from pathlib import Path
 from typing import List
+
 import typer
 
 

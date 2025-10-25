@@ -11,8 +11,9 @@ from typing import List
 import git
 import typer
 
-from devtul.core.constants import IGNORE_PARTS, IGNORE_EXTENSIONS
-from devtul.core.db.schemas import GitMetadata, GitCommit
+from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS
+from devtul.core.db.schemas import GitCommit, GitMetadata
+
 
 def get_git_files(
     repo_path: Path, include_empty: bool = False, only_empty: bool = False

@@ -1,8 +1,8 @@
+from os import environ as env
 from pathlib import Path
 from typing import Optional
-from dotenv import load_dotenv
-from os import environ as env
 
+from dotenv import load_dotenv
 
 _env_path = Path.home() / ".env"
 _app_data = Path.home() / ".devtul"
