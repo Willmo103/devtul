@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 import yaml
 
@@ -45,3 +46,33 @@ class GitMetadata(BaseModel):
 
     def to_yaml(self):
         return yaml.dump(self.model_dump())
+
+
+class RepoMarkdownHeader(BaseModel):
+    """
+    Schema for repository markdown header metadata.
+
+    Attributes:
+        generated_at: str
+        repo_path: str
+        file_count: int
+        files_included: int
+    """
+
+    generated_at: str = Field(
+        default_factory=lambda: datetime.now(tz=timezone.utc).isoformat(),
+        description="Timestamp of when the markdown was generated",
+    )
+    repo_path: str = Field(..., description="Path of the repository")
+    file_count: int = Field(..., description="Total number of files in the repository")
+    files_included: int = Field(
+        ..., description="Number of files included after filtering"
+    )
+
+    def to_yaml(self):
+        return yaml.dump(self.model_dump())
+
+    def frontmatter(self) -> str:
+        """Render the header as a YAML frontmatter string."""
+        yaml_content = self.to_yaml()
+        return f"---\n{yaml_content}---\n"

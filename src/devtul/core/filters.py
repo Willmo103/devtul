@@ -32,7 +32,7 @@ def process_paths_for_subdir(
         return files, files
 
     # Normalize the path to use forward slashes and remove any leading/trailing ones.
-    normalized_dir = sub_dir.strip("/\\").replace("\\", "/")
+    normalized_dir = sub_dir.replace("\\", "/").strip("/")
     if not normalized_dir:
         return files, files
 

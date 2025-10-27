@@ -9,8 +9,7 @@ import typer
 
 from devtul.core.file_utils import get_all_files
 
-from ..core import (apply_filters, build_tree_structure, get_git_files,
-                    process_paths_for_subdir, write_to_file)
+from ..core import apply_filters, build_tree_structure, get_git_files, write_to_file
 
 
 def tree(
