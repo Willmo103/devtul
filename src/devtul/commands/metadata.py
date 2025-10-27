@@ -20,13 +20,13 @@ def git_meta(
     ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
     json_format: bool = typer.Option(
-        False, "-j/--json", help="Output as JSON instead of markdown table"
+        False, "-j", "--json", help="Output as JSON instead of markdown table"
     ),
     yaml_format: bool = typer.Option(
-        False, "-y/--yml/--yaml", help="Output as YAML instead of markdown table"
+        False, "-y", "--yml", "--yaml", help="Output as YAML instead of markdown table"
     ),
     markdown: bool = typer.Option(
-        False, "-md/--markdown", help="Output as markdown using template"
+        False, "-md", "--markdown", help="Output as markdown using template"
     ),
 ):
     """
