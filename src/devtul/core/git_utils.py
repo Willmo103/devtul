@@ -127,30 +127,70 @@ def get_git_metadata(repo_path: Path) -> GitMetadata:
 
 def format_git_metadata_table(metadata: GitMetadata) -> str:
     """Format git metadata as markdown table."""
+    max_key_length = len("Uncommitted Changes")
+    max_value_length = max(
+        len(str(value))
+        for value in [
+            metadata.current_branch,
+            (
+                metadata.latest_commit.hash
+                if metadata.latest_commit and "error" not in metadata.latest_commit
+                else ""
+            ),
+            (
+                metadata.latest_commit.message
+                if metadata.latest_commit and "error" not in metadata.latest_commit
+                else ""
+            ),
+            metadata.branches,
+            metadata.remotes,
+        ]
+    )
+    print(max_value_length)
     if "error" in metadata:
         return f"Error retrieving git metadata: {metadata['error']}"
 
-    table_lines = ["| Property | Value |", "|----------|-------|"]
+    table_lines = []
+    table_lines.append(
+        f"| {'Key'.ljust(max_key_length)} | {'Value'.ljust(max_value_length)} |"
+    )
+    table_lines.append(f"|{'-' * (max_key_length + 2)}|{'-' * (max_value_length + 2)}|")
+    # center everything using the max lengths
+    table_lines.append(
+        f"| {'Current Branch'.ljust(max_key_length)} | {metadata.current_branch.ljust(max_value_length)} |"
+    )
+    table_lines.append(
+        f"| {'Branches'.ljust(max_key_length)} | {', '.join(metadata.branches).ljust(max_value_length)} |"
+    )
 
-    table_lines.append(f"| Current Branch | {metadata.current_branch} |")
-    table_lines.append(f"| Branches | {', '.join(metadata.branches)} |")
-
-    if "latest_commit" in metadata and "error" not in metadata["latest_commit"]:
-        commit = metadata["latest_commit"]
-        table_lines.append(f"| Latest Commit | {commit.hash} |")
-        table_lines.append(f"| Commit Message | {commit.message} |")
-        table_lines.append(f"| Author | {commit.author} |")
-        table_lines.append(f"| Commit Date | {commit.date} |")
+    if metadata.latest_commit and "error" not in metadata.latest_commit:
+        commit = metadata.latest_commit
+        table_lines.append(
+            f"| {'Latest Commit'.ljust(max_key_length)} | {commit.hash.ljust(max_value_length)} |"
+        )
+        table_lines.append(
+            f"| {'Commit Message'.ljust(max_key_length)} | {commit.message.ljust(max_value_length)} |"
+        )
+        table_lines.append(
+            f"| {'Author'.ljust(max_key_length)} | {commit.author.ljust(max_value_length)} |"
+        )
+        table_lines.append(
+            f"| {'Commit Date'.ljust(max_key_length)} | {commit.date.ljust(max_value_length)} |"
+        )
 
     table_lines.append(
-        f"| Uncommitted Changes | {'Yes' if metadata.uncommitted_changes else 'No'} |"
+        f"| {'Uncommitted Changes'.ljust(max_key_length)} | {'Yes'.ljust(max_value_length) if metadata.uncommitted_changes else 'No'.ljust(max_value_length)} |"
     )
-    table_lines.append(f"| Untracked Files | {metadata.untracked_files} |")
+    table_lines.append(
+        f"| {'Untracked Files'.ljust(max_key_length)} | {str(metadata.untracked_files).ljust(max_value_length)} |"
+    )
 
     if metadata.remotes:
         remotes_str = ", ".join(
-            [f"{name}: {url}" for name, url in metadata.remotes.items()]
+            f"{name}: {url}" for name, url in metadata.remotes.items()
         )
-        table_lines.append(f"| Remotes | {remotes_str} |")
+        table_lines.append(
+            f"| {'Remotes'.ljust(max_key_length)} | {remotes_str.ljust(max_value_length)} |"
+        )
 
     return "\n".join(table_lines)
