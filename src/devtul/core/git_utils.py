@@ -146,7 +146,6 @@ def format_git_metadata_table(metadata: GitMetadata) -> str:
             metadata.remotes,
         ]
     )
-    print(max_value_length)
     if "error" in metadata:
         return f"Error retrieving git metadata: {metadata['error']}"
 

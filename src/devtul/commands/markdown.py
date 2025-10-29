@@ -7,12 +7,12 @@ from pathlib import Path
 from typing import List, Optional
 
 import typer
-import yaml
 
 from devtul.core import (apply_filters, build_tree_structure,
                          format_git_metadata_table, get_git_files,
                          get_git_metadata, write_to_file)
 from devtul.core.constants import MD_XREF
+from devtul.core.db.schemas import RepoMarkdownHeader
 from devtul.core.file_utils import get_all_files
 
 
@@ -96,17 +96,14 @@ def markdown(
     markdown_content = []
 
     # YAML frontmatter
-    frontmatter = {
-        "generated_at": datetime.now().isoformat(),
-        "repo_path": str(path.absolute()),
-        "file_count": len(all_files),
-        "files_included": len(filtered_files),
-    }
+    frontmatter = RepoMarkdownHeader(
+        generated_at=datetime.now().isoformat(),
+        repo_path=str(path.absolute()),
+        file_count=len(all_files),
+        files_included=len(filtered_files),
+    )
 
-    markdown_content.append("---")
-    markdown_content.append(yaml.dump(frontmatter, default_flow_style=False).strip())
-    markdown_content.append("---")
-    markdown_content.append("")
+    markdown_content.append(frontmatter.frontmatter())
 
     if GIT_MODE:
         # Repository title
@@ -133,6 +130,8 @@ def markdown(
     markdown_content.append("")
     markdown_content.append("---")
     markdown_content.append("")
+    markdown_content.append("## Files")
+    markdown_content.append("")
 
     # File contents - iterate using both original and adjusted paths
     for adj_path, orig_path in zip(sorted(filtered_files), sorted(filtered_files)):
@@ -152,12 +151,21 @@ def markdown(
                 file_size = "Unknown"
                 last_modified = "Unknown"
 
+            max_key_length = len("Relative Path")
+            max_value_length = max(
+                len(display_path), len(last_modified), len(str(file_size)) + 7
+            )  # +7 for " bytes"
             file_table = [
-                "| Property | Value |",
-                "|----------|-------|",
-                f"| Relative Path | {display_path} |",
-                f"| Last Modified | {last_modified} |",
-                f"| Size | {file_size} bytes |",
+                f"| {'Property'.ljust(max_key_length)} | {'Value'.ljust(max_value_length)} |",
+                "|"
+                + "-" * (max_key_length + 2)
+                + "|"
+                + "-" * (max_value_length + 2)
+                + "|",
+                f"| {'Relative Path'.ljust(max_key_length)} | {display_path.ljust(max_value_length)} |",
+                f"| {'Created At'.ljust(max_key_length)} | {datetime.fromtimestamp(full_path.stat().st_birthtime).isoformat().ljust(max_value_length)} |",
+                f"| {'Last Modified'.ljust(max_key_length)} | {last_modified.ljust(max_value_length)} |",
+                f"| {'Size'.ljust(max_key_length)} | {(str(file_size) + ' bytes').ljust(max_value_length)} |",
             ]
 
             markdown_content.extend(file_table)
@@ -168,7 +176,7 @@ def markdown(
             markdown_content.append("")
 
         # File content
-        markdown_content.append("#### Content")
+        markdown_content.append("**Content**:")
         markdown_content.append("")
         markdown_content.append("```" + get_markdown_mapping(full_path))
 
@@ -181,12 +189,13 @@ def markdown(
 
         markdown_content.append("```")
         markdown_content.append("")
+        markdown_content.append("---")
+        markdown_content.append("")
 
     # Join all content
     final_content = "\n".join(markdown_content)
 
-    if file is not None and file == Path():
-        output_file = Path.cwd() / "flattened_repo.md"
-        write_to_file(final_content, output_file)
+    if file is not None:
+        write_to_file(final_content, file)
     else:
         print(final_content)
