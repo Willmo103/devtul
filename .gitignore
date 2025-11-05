@@ -10,3 +10,4 @@ wheels/
 .venv
 *codebase*
 *.spec
+.vscode/settings.json

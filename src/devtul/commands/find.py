@@ -35,11 +35,7 @@ def find(
     json_format: bool = typer.Option(
         False, "--json", help="Output as JSON instead of table"
     ),
-    ignore_case: bool = typer.Option(
-        True,
-        "--ignore-case/--no-ignore-case",
-        help="Case insensitive search (default true)",
-    ),
+    table_format: bool = typer.Option(False, "--table", help="Output as table format"),
     git: bool = typer.Option(
         True, "--git/--no-git", help="look for git files or all files"
     ),
@@ -65,31 +61,30 @@ def find(
 
     all_files = get_git_files(path, include_empty=False)
 
-    # Process for sub-directory
-    original_files, adjusted_files = process_paths_for_subdir(all_files, sub_dir)
+    # # Process for sub-directory
+    # original_files, adjusted_files = process_paths_for_subdir(all_files, sub_dir)
 
-    # Create a map to get original path from adjusted path
-    path_map = dict(zip(adjusted_files, original_files))
+    # # Create a map to get original path from adjusted path
+    # path_map = dict(zip(adjusted_files, original_files))
 
-    # Apply match/exclude filters on the adjusted paths
-    filtered_adjusted_files = apply_filters(adjusted_files, match, exclude)
+    # # Apply match/exclude filters on the adjusted paths
+    filtered_adjusted_files = apply_filters(all_files, match, exclude)
 
     if not filtered_adjusted_files:
         typer.echo("No files match the specified criteria", err=True)
         raise typer.Exit(1)
 
-    # Get the corresponding original files for reading content
-    filtered_original_files = [path_map[f] for f in filtered_adjusted_files]
+    # # Get the corresponding original files for reading content
+    # filtered_original_files = [path_map[f] for f in filtered_adjusted_files]
 
     # Search in files
     all_matches = []
-    for adj_path, orig_path in zip(
-        sorted(filtered_adjusted_files), sorted(filtered_original_files)
-    ):
-        full_path = path / orig_path
-        matches = search_in_file(full_path, term, encoding)
+    for adj_path in sorted(filtered_adjusted_files):
+        full_path = path / adj_path
+        matches = search_in_file(full_path, term)
         for match in matches:
-            match["relative_path"] = adj_path  # Use the adjusted path for display
+            match.file_path = full_path.as_posix()  # Full file path for reading
+            match.relative_path = adj_path  # Use the adjusted path for display
             all_matches.append(match)
 
     if not all_matches:
@@ -100,31 +95,36 @@ def find(
                 {
                     "search_term": term,
                     "total_matches": len(all_matches),
-                    "matches": all_matches,
+                    "matches": [match.model_dump() for match in all_matches],
                 },
                 indent=2,
             )
-        else:
+        elif table_format:
             # Create table format
             table_lines = [
                 "| File | Line | Content |",
                 "|------|------|---------|",
             ]
-
             for match in all_matches:
-                file_path = match["relative_path"]
-                line_num = match["line_number"]
-                content = match["content"][:100] + (
-                    "..." if len(match["content"]) > 100 else ""
+                file_path = match.relative_path
+                line_num = match.line_number
+                content = match.content[:100] + (
+                    "..." if len(match.content) > 100 else ""
                 )
                 # Escape pipe characters in content for table
                 content = content.replace("|", "\\|")
                 table_lines.append(f"| {file_path} | {line_num} | {content} |")
-
             output = "\n".join(table_lines)
+        else:
+            output = []
+            for match in all_matches:
+                if not match.is_error():
+                    output.append(match.as_line())
+            output = "\n".join(output)
 
     # Determine output behavior
     if file is not None:
         write_to_file(output, file)
     else:
         typer.echo(output)
+    return

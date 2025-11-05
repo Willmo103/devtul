@@ -1,8 +1,11 @@
 import json
+from pathlib import Path
 from pydantic import BaseModel
 from typing import Any, Dict, Optional
 from jinja2 import Template
 import yaml
+
+from devtul.core.constants import MD_XREF
 
 
 def serialize(
@@ -43,3 +46,13 @@ def render_template(template_name: str, obj: Any) -> str:
     template = Template(template_content)
     rendered_content = template.render(obj=obj)
     return rendered_content
+
+
+def get_markdown_mapping(file_path: str | Path) -> str:
+    """
+    Get the markdown mapping for a given file.
+    """
+    if isinstance(file_path, str):
+        file_path = Path(file_path)
+    extension = file_path.suffix.lower()
+    return MD_XREF.get(extension, "plaintext")

@@ -8,22 +8,17 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core import (apply_filters, build_tree_structure,
-                         format_git_metadata_table, get_git_files,
-                         get_git_metadata, write_to_file)
-from devtul.core.constants import MD_XREF
+from devtul.core import (
+    apply_filters,
+    build_tree_structure,
+    format_git_metadata_table,
+    get_git_files,
+    get_git_metadata,
+    write_to_file,
+)
 from devtul.core.db.schemas import RepoMarkdownHeader
 from devtul.core.file_utils import get_all_files
-
-
-def get_markdown_mapping(file_path: str | Path) -> str:
-    """
-    Get the markdown mapping for a given file.
-    """
-    if isinstance(file_path, str):
-        file_path = Path(file_path)
-    extension = file_path.suffix.lower()
-    return MD_XREF.get(extension, "plaintext")
+from devtul.core.utils import get_markdown_mapping
 
 
 def markdown(

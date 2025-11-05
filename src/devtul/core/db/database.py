@@ -1,29 +1,5 @@
-from contextlib import contextmanager
+from sqlite_utils import Database
+from devtul.core.config import _app_data
 
-import psycopg2 as pg
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
-
-from devtul.core.config import INTERFACE_DB_URL
-
-Base = declarative_base()
-engine = create_engine(INTERFACE_DB_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-@contextmanager
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@contextmanager
-def get_postgres_session():
-    conn = pg.connect(INTERFACE_DB_URL)
-    try:
-        yield conn
-    finally:
-        conn.close()
+db_path = _app_data / "devtul_interface.db"
+database = Database(db_path)

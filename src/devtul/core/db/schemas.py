@@ -1,23 +1,8 @@
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Optional
 from pydantic import BaseModel, Field
 import yaml
-
-
-class markdownSchema(BaseModel):
-    """Schema for markdown metadata."""
-
-    root_path: str = Field(..., description="Root path of the repository")
-    total_files: int = Field(..., description="Total number of files")
-    included_files: int = Field(
-        ..., description="Number of included files after filtering"
-    )
-    generated_at: str = Field(
-        ..., description="Timestamp of when the metadata was generated"
-    )
-    tree: str = Field(..., description="Tree structure of the files in markdown format")
-    git_metadata: dict = Field(
-        None, description="Git metadata information", alias="git_metadata"
-    )
 
 
 class GitCommit(BaseModel):
@@ -76,3 +61,61 @@ class RepoMarkdownHeader(BaseModel):
         """Render the header as a YAML frontmatter string."""
         yaml_content = self.to_yaml()
         return f"---\n{yaml_content}---\n"
+
+
+class markdownSchema(BaseModel):
+    """Schema for markdown metadata."""
+
+    root_path: str = Field(..., description="Root path of the repository")
+    total_files: int = Field(..., description="Total number of files")
+    included_files: int = Field(
+        ..., description="Number of included files after filtering"
+    )
+    generated_at: str = Field(
+        ..., description="Timestamp of when the metadata was generated"
+    )
+    tree: str = Field(..., description="Tree structure of the files in markdown format")
+    git_metadata: dict = Field(
+        None, description="Git metadata information", alias="git_metadata"
+    )
+    markdown_content: str = Field(..., description="Full markdown content")
+
+
+class FileSearchMatch(BaseModel):
+    """Schema for a search match within a file."""
+
+    file_path: Optional[str] = Field(
+        None, description="Path of the file containing the match"
+    )
+    relative_path: Optional[str] = Field(
+        None, description="Relative path of the file from the search root"
+    )
+    line_number: Optional[int] = Field(None, description="Line number of the match")
+    content: Optional[str] = Field(None, description="Content of the matching line")
+    error: Optional[str] = Field(None, description="Error message if any occurred")
+
+    def is_error(self) -> bool:
+        """Check if this match represents an error."""
+        return self.error is not None
+
+    def as_line(self) -> Optional[str]:
+        """Format the match as a single line string."""
+        if self.is_error():
+            return None
+        if self.file_path is None and self.relative_path is not None:
+            self.file_path = Path(self.relative_path).resolve().as_posix()
+        return f"{Path(self.file_path).resolve().as_posix()}:{self.line_number}"
+
+
+class FileMatchResults(BaseModel):
+    """Schema for file match results."""
+
+    search_term: str = Field(..., description="The term that was searched for")
+    total_matches: int = Field(..., description="Total number of matches found")
+    matches: list[FileSearchMatch] = Field(
+        ..., description="List of file search matches"
+    )
+
+    def to_yaml(self) -> str:
+        """Convert the results to a YAML string."""
+        return yaml.dump(self.model_dump())

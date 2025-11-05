@@ -7,6 +7,8 @@ from typing import List
 
 import typer
 
+from devtul.core.db.schemas import FileSearchMatch
+
 
 def write_to_file(content: str, file_path: Path):
     """Write content to file and/or stdout based on options."""
@@ -92,26 +94,28 @@ def build_tree_structure(files: List[str], parent: str = ".") -> str:
     return "\n".join(root_lines)
 
 
-def search_in_file(file_path: Path, search_term: str, encoding: str) -> List[dict]:
+def search_in_file(file_path: Path, search_term: str) -> List[FileSearchMatch]:
     """Search for a term in a file and return matching lines with context."""
     matches = []
     try:
-        with open(file_path, "r", encoding=encoding, errors="replace") as f:
+        with open(file_path, "r", encoding="utf8", errors="replace") as f:
             for line_num, line in enumerate(f, 1):
                 if search_term.lower() in line.lower():
                     matches.append(
-                        {
-                            "line_number": line_num,
-                            "content": line.strip(),
-                            "file": str(file_path),
-                        }
+                        FileSearchMatch(
+                            file_path=file_path.resolve().as_posix(),
+                            line_number=line_num,
+                            content=line.strip(),
+                            file=str(file_path),
+                        )
                     )
     except Exception as e:
         matches.append(
-            {
-                "line_number": 0,
-                "content": f"Error reading file: {e}",
-                "file": str(file_path),
-            }
+            FileSearchMatch(
+                file_path=file_path.resolve().as_posix(),
+                line_number=0,
+                content=f"Error reading file: {e}",
+                file=str(file_path),
+            )
         )
     return matches
