@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 from jinja2 import Template
 import yaml
 
+from devtul.core.config import EDITOR
 from devtul.core.constants import MD_XREF
 
 
@@ -56,3 +57,19 @@ def get_markdown_mapping(file_path: str | Path) -> str:
         file_path = Path(file_path)
     extension = file_path.suffix.lower()
     return MD_XREF.get(extension, "plaintext")
+
+
+def edit_file_in_editor(file_path: Path) -> None:
+    """
+    Open a file in the specified editor.
+
+    Args:
+        file_path: Path to the file to edit
+        editor_cmd: Command to launch the editor (e.g., "nano", "code", etc.)
+    """
+    import subprocess
+
+    if EDITOR is None:
+        raise ValueError("No editor specified. Please set the EDITOR variable.")
+
+    subprocess.run([EDITOR, str(file_path)])

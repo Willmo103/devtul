@@ -8,6 +8,7 @@ _env_path = Path.home() / ".env"
 _app_data = Path.home() / ".devtul"
 _app_data.mkdir(exist_ok=True)
 scripts_dir = _app_data / "scripts"
+user_templates_dir = _app_data / "user_templates"
 scripts_dir.mkdir(exist_ok=True)
 app_root = Path(__file__).parent.parent.resolve()
 

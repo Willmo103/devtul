@@ -3,7 +3,6 @@ from os import walk
 from pathlib import Path
 from typing import List, Optional
 
-from devtul.core.config import EDITOR
 from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS
 from devtul.core.filters import should_ignore_path
 
@@ -50,22 +49,6 @@ def get_all_files(
                 all_files.append(str(path.relative_to(path.parent.parent)))
 
     return sorted(all_files)
-
-
-def edit_file_in_editor(file_path: Path) -> None:
-    """
-    Open a file in the specified editor.
-
-    Args:
-        file_path: Path to the file to edit
-        editor_cmd: Command to launch the editor (e.g., "nano", "code", etc.)
-    """
-    import subprocess
-
-    if EDITOR is None:
-        raise ValueError("No editor specified. Please set the EDITOR variable.")
-
-    subprocess.run([EDITOR, str(file_path)])
 
 
 def find_all_dirs_containing_marker_folder(

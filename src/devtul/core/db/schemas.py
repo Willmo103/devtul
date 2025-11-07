@@ -66,13 +66,14 @@ class RepoMarkdownHeader(BaseModel):
 class markdownSchema(BaseModel):
     """Schema for markdown metadata."""
 
-    root_path: str = Field(..., description="Root path of the repository")
-    total_files: int = Field(..., description="Total number of files")
-    included_files: int = Field(
-        ..., description="Number of included files after filtering"
+    root_path: Optional[str] = Field(None, description="Root path of the repository")
+    total_files: Optional[int] = Field(0, description="Total number of files")
+    included_files: Optional[int] = Field(
+        None, description="Number of included files after filtering"
     )
-    generated_at: str = Field(
-        ..., description="Timestamp of when the metadata was generated"
+    generated_at: Optional[datetime] = Field(
+        default_factory=lambda: datetime.now(tz=timezone.utc).isoformat(),
+        description="Timestamp of when the metadata was generated",
     )
     tree: str = Field(..., description="Tree structure of the files in markdown format")
     git_metadata: dict = Field(
