@@ -9,6 +9,7 @@ from .list_files import ls
 from .markdown import markdown
 from .metadata import git_meta
 from .tree import tree
+from .new import app as new_cli
 
 __all__ = [
     "find",
@@ -18,4 +19,5 @@ __all__ = [
     "tree",
     "find_folder",
     "empty",
+    "new_cli",
 ]

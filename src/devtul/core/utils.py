@@ -72,18 +72,17 @@ def edit_file_in_editor(file_path: Path, return_content: bool = False) -> None:
 
     if EDITOR is None:
         raise ValueError("No editor specified. Please set the EDITOR variable.")
-
-    subprocess.run([EDITOR, str(file_path)])
+    print(f"Opening file '{file_path}' in editor '{EDITOR}'...")
+    subprocess.run([EDITOR, file_path.as_posix()], shell=True)
     # wait for the editor to close before returning
-
     if return_content:
+        input("Press Enter to continue when done editing...")
         with open(file_path, "r", encoding="utf-8") as f:
             return f.read()
+    return ""
 
 
-def create_tmp_file(
-    content: Optional[str] = None, file_name: Optional[str] = None
-) -> Path:
+def create_tmp_file(content: Optional[str] = None) -> Path:
     """
     Create a temporary file with optional content.
 
@@ -97,10 +96,7 @@ def create_tmp_file(
     TMP_DIR = APP_DATA / "temp"
     TMP_DIR.mkdir(exist_ok=True)
 
-    if file_name:
-        tmp_file_path = TMP_DIR / "_" + uuid4().hex + "_" + file_name
-    else:
-        tmp_file_path = TMP_DIR / uuid4().hex + ".tmp"
+    tmp_file_path = TMP_DIR / (uuid4().hex + ".tmp")
 
     if content:
         with open(tmp_file_path, "w", encoding="utf-8") as f:
@@ -112,22 +108,49 @@ def create_tmp_file(
 def edit_as_temp(
     content: Optional[str] = None,
     file_path: Optional[Path] = None,
-    file_name: Optional[str] = None,
 ) -> str:
     """
-    Edit a file in a temporary location.
+    Edit content as a temporary file in the specified editor.
 
     Args:
         content: Content to write to the temporary file
-        file_path: Path to the original file
+        file_path: Optional path to an existing file to edit
         file_name: Optional name for the temporary file
-
     Returns:
-        Path to the created temporary file
+        The content of the file after editing
     """
     if file_path:
-        tmp_file_path = create_tmp_file(content=content, file_name=file_name)
+        content = file_path.read_text(encoding="utf-8")
+        tmp_file_path = create_tmp_file(content=content)
     else:
         tmp_file_path = create_tmp_file(content=content)
 
-    return edit_file_in_editor(tmp_file_path, return_content=True)
+    new_content = edit_file_in_editor(file_path=tmp_file_path, return_content=True)
+
+    return new_content
+
+
+def load_yaml_file(fpath: Path) -> Dict[str, Any]:
+    """Load a YAML file and return its contents as a dictionary."""
+    with open(fpath, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    return data
+
+
+def save_yaml_file(fpath: Path, data: Dict[str, Any]) -> None:
+    """Save a dictionary to a YAML file."""
+    with open(fpath, "w", encoding="utf-8") as f:
+        yaml.safe_dump(data, f)
+
+
+def load_json_file(fpath: Path) -> Dict[str, Any]:
+    """Load a JSON file and return its contents as a dictionary."""
+    with open(fpath, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data
+
+
+def save_json_file(fpath: Path, data: Dict[str, Any]) -> None:
+    """Save a dictionary to a JSON file."""
+    with open(fpath, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)

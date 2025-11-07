@@ -120,3 +120,10 @@ class FileMatchResults(BaseModel):
     def to_yaml(self) -> str:
         """Convert the results to a YAML string."""
         return yaml.dump(self.model_dump())
+
+
+class UserTemplate(BaseModel):
+    """Schema for user-defined templates stored in the database."""
+
+    name: str
+    content: str
