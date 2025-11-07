@@ -1,11 +1,12 @@
 import json
 from pathlib import Path
+from uuid import uuid4
 from pydantic import BaseModel
 from typing import Any, Dict, Optional
 from jinja2 import Template
 import yaml
 
-from devtul.core.config import EDITOR
+from devtul.core.config import EDITOR, APP_DATA
 from devtul.core.constants import MD_XREF
 
 
@@ -59,7 +60,7 @@ def get_markdown_mapping(file_path: str | Path) -> str:
     return MD_XREF.get(extension, "plaintext")
 
 
-def edit_file_in_editor(file_path: Path) -> None:
+def edit_file_in_editor(file_path: Path, return_content: bool = False) -> None:
     """
     Open a file in the specified editor.
 
@@ -73,3 +74,60 @@ def edit_file_in_editor(file_path: Path) -> None:
         raise ValueError("No editor specified. Please set the EDITOR variable.")
 
     subprocess.run([EDITOR, str(file_path)])
+    # wait for the editor to close before returning
+
+    if return_content:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+
+
+def create_tmp_file(
+    content: Optional[str] = None, file_name: Optional[str] = None
+) -> Path:
+    """
+    Create a temporary file with optional content.
+
+    Args:
+        content: Content to write to the temporary file
+        file_name: Optional name for the temporary file
+
+    Returns:
+        Path to the created temporary file
+    """
+    TMP_DIR = APP_DATA / "temp"
+    TMP_DIR.mkdir(exist_ok=True)
+
+    if file_name:
+        tmp_file_path = TMP_DIR / "_" + uuid4().hex + "_" + file_name
+    else:
+        tmp_file_path = TMP_DIR / uuid4().hex + ".tmp"
+
+    if content:
+        with open(tmp_file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+    return tmp_file_path
+
+
+def edit_as_temp(
+    content: Optional[str] = None,
+    file_path: Optional[Path] = None,
+    file_name: Optional[str] = None,
+) -> str:
+    """
+    Edit a file in a temporary location.
+
+    Args:
+        content: Content to write to the temporary file
+        file_path: Path to the original file
+        file_name: Optional name for the temporary file
+
+    Returns:
+        Path to the created temporary file
+    """
+    if file_path:
+        tmp_file_path = create_tmp_file(content=content, file_name=file_name)
+    else:
+        tmp_file_path = create_tmp_file(content=content)
+
+    return edit_file_in_editor(tmp_file_path, return_content=True)

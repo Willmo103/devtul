@@ -13,7 +13,7 @@ scripts_dir.mkdir(exist_ok=True)
 app_root = Path(__file__).parent.parent.resolve()
 
 load_dotenv(dotenv_path=_env_path)
-
+APP_DATA = _app_data
 INTERFACE_DB_URL = env["DB_CONN_INFO"]
 EDITOR = env["EDITOR"] if "EDITOR" in env else "code -w"
 DOT_ENV_PATH = _env_path

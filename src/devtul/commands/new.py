@@ -24,4 +24,4 @@ def user_template_from_file(
         name = fname.rsplit(".", 1)[0]
     return UserTemplate(name=name, fname=fname, content=content)
 
-def from_temp(name: str)
+def from_temp(name: str) ->
