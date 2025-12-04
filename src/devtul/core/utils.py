@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 from jinja2 import Template
 import yaml
 
-from devtul.core.config import EDITOR, APP_DATA
+from devtul.core.config import EDITOR, app_root
 from devtul.core.constants import MD_XREF
 
 
@@ -93,7 +93,7 @@ def create_tmp_file(content: Optional[str] = None) -> Path:
     Returns:
         Path to the created temporary file
     """
-    TMP_DIR = APP_DATA / "temp"
+    TMP_DIR = app_root / "temp"
     TMP_DIR.mkdir(exist_ok=True)
 
     tmp_file_path = TMP_DIR / (uuid4().hex + ".tmp")
