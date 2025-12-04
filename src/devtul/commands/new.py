@@ -69,12 +69,12 @@ def create_new_file_from_template(
 app = typer.Typer(name="new", help="Create new files from templates")
 
 
-@app.command("create", help="Create a new file from a user-defined template")
+@app.command("create", help="Create a new template")
 def create_template(
-    template_name: str = typer.Argument(..., help="Name of the template to use"),
+    template_name: str = typer.Argument(..., help="Name for the template"),
     file_path: Optional[Path] = typer.Option(
         None,
-        help="Path to the output file",
+        help="Path to an existing file to use as template",
         callback=lambda v: Path(v).resolve() if v else None,
     ),
 ):
@@ -82,7 +82,8 @@ def create_template(
     Create a new file from a user-defined template stored in the database.
 
     Examples:
-        new create my_template -f ./output.txt
+        new create basic_resume -f ./resume_template.rst
+        new create project_readme (this will open the editor to input template content)
     """
     if not template_name:
         typer.echo("Error: Template name is required", err=True)
@@ -104,10 +105,7 @@ def create_template(
 @app.command("ls", help="List all user-defined templates in the database")
 def list_templates():
     """
-    List all user-defined templates stored in the database.
-
-    Examples:
-        new ls
+    List stored templates.
     """
     templates = get_all_user_templates()
     if not templates:
@@ -131,7 +129,6 @@ def edit_template(
     try:
         updated_tmpl = edit_db_template_in_editor(template_name)
         if not updated_tmpl:
-            typer.echo(f"Error: Template '{template_name}' not found", err=True)
             raise typer.Exit(1)
         typer.echo(f"Template '{template_name}' updated successfully.")
     except Exception as e:
