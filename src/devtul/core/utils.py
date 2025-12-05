@@ -154,3 +154,30 @@ def save_json_file(fpath: Path, data: Dict[str, Any]) -> None:
     """Save a dictionary to a JSON file."""
     with open(fpath, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
+
+
+def convert_from_file_to_base64(fpath: Path) -> str:
+    """Convert a file to a base64-encoded string."""
+    import base64
+
+    with open(fpath, "rb") as f:
+        encoded_bytes = base64.b64encode(f.read())
+    return encoded_bytes.decode("utf-8")
+
+
+def convert_from_base64_to_file(b64_string: str, output_path: Path) -> None:
+    """Convert a base64-encoded string back to a file."""
+    import base64
+
+    decoded_bytes = base64.b64decode(b64_string.encode("utf-8"))
+    with open(output_path, "wb") as f:
+        f.write(decoded_bytes)
+
+
+def create_base64_image_tag(
+    b64_string: str, image_type: str = "png", fpath: Optional[Path] = None
+) -> str:
+    """Create an HTML image tag with a base64-encoded image."""
+    if fpath:
+        image_type = fpath.suffix.lstrip(".").lower()
+    return f'<img src="data:image/{image_type};base64,{b64_string}" alt="Embedded Image" />'
