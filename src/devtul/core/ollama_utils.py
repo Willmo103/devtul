@@ -1,4 +1,5 @@
-from git import Optional
+from pathlib import Path
+from typing import Optional
 import ollama
 import os
 
@@ -6,16 +7,6 @@ from pydantic import BaseModel, computed_field
 
 HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 _client = ollama.Client(host=HOST, timeout=90)
-
-def _get_generate_response():
-    _client.generate(
-        model=""
-        prompt="",
-        suffix="",
-        system="",
-        format="",
-        images=[],
-    )
 
 
 class LoopItem(BaseModel):
@@ -30,26 +21,30 @@ class LoopItem(BaseModel):
             return {dict(self.content)[k]: v for k, v in dict(self.content).items()}
 
 
+class LoopImageItem(LoopItem):
+    @classmethod
+    def from_url(cls, fname: Path, index: int):
+        from devtul.core.utils import encode_image_to_base64
+
+        content = encode_image_to_base64(fname)
+        return cls(content=content, index=index)
+
+
+class LoopResult(BaseModel):
+    item: LoopItem
+    response: ollama.GenerateResponse
+
+
 class GenerateLoop:
+
     def __init__(
         self,
         system: str,
-        model: str,
-        temprature: float = 0.7,
-        max_tokens: int = 1224,
-        template: Optional[str] = None,
+        template: str,
+        format: Optional[str] = None,
         items: list[LoopItem] = [],
         responses: list[ollama.GenerateResponse] = [],
     ):
-        self._system = system
-        self._model = model
-        self._temprature = temprature
-        self._max_tokens = max_tokens
         self._items = items
         self._responses = responses
         self._client = _client
-        if template:
-            self._template = template
-
-
-    def execute_step(self,
