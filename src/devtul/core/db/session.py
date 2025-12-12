@@ -11,17 +11,34 @@ from devtul.core.models import (
 @contextmanager
 def pg_session(database_config: PostgresDatabaseConfig):
     try:
-        import psycopg2 as pg
+        import psycopg2 as pg  # type: ignore
     except ImportError:
         raise ImportError(
             "psycopg2 is required for PostgreSQL database connections. "
-            "Please install it via 'uv pip install psycopg2-binary'."
+            "Please install it via `uv install devtul['pg']`."
         )
     conn = pg.connect(database_config.conn_info)
     try:
         yield conn
     finally:
         conn.close()
+
+
+def test_pg_config(database_config: PostgresDatabaseConfig) -> bool:
+    """Test PostgreSQL database connection using the provided configuration.
+    Args:
+        database_config: PostgresDatabaseConfig object containing the connection details
+    Returns:
+        True if connection is successful, False otherwise
+    """
+    try:
+        with pg_session(database_config) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT 1;")
+                result = cursor.fetchone()
+                return result is not None and result[0] == 1
+    except Exception:
+        return False
 
 
 @contextmanager
@@ -38,13 +55,30 @@ def mysql_session(database_config: MySQLDatabaseConfig):
     except ImportError:
         raise ImportError(
             "mysql-connector-python is required for MySQL database connections. "
-            "Please install it via 'uv pip install mysql-connector-python'."
+            "Please install it via 'uv install devtul['mysql']'."
         )
     conn = mysql.connector.connect(**conn_info)
     try:
         yield conn
     finally:
         conn.close()
+
+
+def test_mysql_config(database_config: MySQLDatabaseConfig) -> bool:
+    """Test MySQL database connection using the provided configuration.
+    Args:
+        database_config: MySQLDatabaseConfig object containing the connection details
+    Returns:
+        True if connection is successful, False otherwise
+    """
+    try:
+        with mysql_session(database_config) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1;")
+            result = cursor.fetchone()
+            return result is not None and result[0] == 1
+    except Exception:
+        return False
 
 
 @contextmanager
@@ -61,7 +95,7 @@ def mssql_session(database_config: MsSQLDatabaseConfig):
     except ImportError:
         raise ImportError(
             "pyodbc is required for MS SQL Server database connections. "
-            "Please install it via 'uv pip install pyodbc'."
+            "Please install it via 'uv install devtul['mssql']'."
         )
     conn_str = (
         f"DRIVER={{ODBC Driver 17 for SQL Server}};"
@@ -75,6 +109,23 @@ def mssql_session(database_config: MsSQLDatabaseConfig):
         yield conn
     finally:
         conn.close()
+
+
+def test_mssql_config(database_config: MsSQLDatabaseConfig) -> bool:
+    """Test MS SQL Server database connection using the provided configuration.
+    Args:
+        database_config: MsSQLDatabaseConfig object containing the connection details
+    Returns:
+        True if connection is successful, False otherwise
+    """
+    try:
+        with mssql_session(database_config) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1;")
+            result = cursor.fetchone()
+            return result is not None and result[0] == 1
+    except Exception:
+        return False
 
 
 @contextmanager
@@ -93,6 +144,23 @@ def sqlite_session(database_config: SQLiteDatabaseConfig):
         conn.close()
 
 
+def test_sqlite_config(database_config: SQLiteDatabaseConfig) -> bool:
+    """Test SQLite database connection using the provided configuration.
+    Args:
+        database_config: SQLiteDatabaseConfig object containing the connection details
+    Returns:
+        True if connection is successful, False otherwise
+    """
+    try:
+        with sqlite_session(database_config) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1;")
+            result = cursor.fetchone()
+            return result is not None and result[0] == 1
+    except Exception:
+        return False
+
+
 @contextmanager
 def mongodb_session(database_config: MongoDBDatabaseConfig):
     try:
@@ -100,10 +168,26 @@ def mongodb_session(database_config: MongoDBDatabaseConfig):
     except ImportError:
         raise ImportError(
             "pymongo is required for MongoDB database connections. "
-            "Please install it via 'uv pip install pymongo'."
+            "Please install it via 'uv install devtul['mongodb']'."
         )
     client = MongoClient(database_config.uri)
     try:
         yield client
     finally:
         client.close()
+
+
+def test_mongodb_config(database_config: MongoDBDatabaseConfig) -> bool:
+    """Test MongoDB database connection using the provided configuration.
+    Args:
+        database_config: MongoDBDatabaseConfig object containing the connection details
+    Returns:
+        True if connection is successful, False otherwise
+    """
+    try:
+        with mongodb_session(database_config) as client:
+            # The ismaster command is cheap and does not require auth.
+            client.admin.command("ismaster")
+            return True
+    except Exception:
+        return False

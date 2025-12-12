@@ -32,7 +32,7 @@ def get_all_files(
         return sorted(
             [
                 str(p.relative_to(path))
-                for p in path.rglob("*")
+                for p in path.rglob("*", recurse_symlinks=False)
                 if p.is_file() and (include_empty or p.stat().st_size > 0)
             ]
         )
@@ -42,7 +42,7 @@ def get_all_files(
     if ignore_patterns is None:
         ignore_patterns = IGNORE_EXTENSIONS
 
-    for path in path.rglob("*"):
+    for path in path.rglob("*", recurse_symlinks=False):
         if path.is_file() and (file_size := path.stat().st_size) is not None:
             if should_ignore_path(
                 path, ignore_parts=ignore_parts, ignore_patterns=ignore_patterns

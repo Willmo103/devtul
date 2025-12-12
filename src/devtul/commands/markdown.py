@@ -66,7 +66,9 @@ def markdown(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if not git or not path / ".git".exists():
+    has_git = any(path.rglob(".git"))
+
+    if not git or not has_git:
         GIT_MODE = False
         all_files = get_all_files(path, include_empty=include_empty)
     else:
@@ -130,51 +132,65 @@ def markdown(
 
     # File contents - iterate using both original and adjusted paths
     for adj_path, orig_path in zip(sorted(filtered_files), sorted(filtered_files)):
-        full_path = path / orig_path
-        display_path = adj_path
+        try:
+            full_path = path / orig_path
+            display_path = adj_path
 
-        markdown_content.append(f"### {Path(display_path).name}")
-        markdown_content.append("")
-
-        if file_meta:
-            # File metadata table
-            try:
-                stat = full_path.stat()
-                file_size = stat.st_size
-                last_modified = datetime.fromtimestamp(stat.st_mtime).isoformat()
-            except Exception:
-                file_size = "Unknown"
-                last_modified = "Unknown"
-
-            max_key_length = len("Relative Path")
-            max_value_length = max(
-                len(display_path), len(last_modified), len(str(file_size)) + 7
-            )  # +7 for " bytes"
-            file_table = [
-                f"| {'Property'.ljust(max_key_length)} | {'Value'.ljust(max_value_length)} |",
-                "|"
-                + "-" * (max_key_length + 2)
-                + "|"
-                + "-" * (max_value_length + 2)
-                + "|",
-                f"| {'Relative Path'.ljust(max_key_length)} | {display_path.ljust(max_value_length)} |",
-                f"| {'Created At'.ljust(max_key_length)} | {datetime.fromtimestamp(full_path.stat().st_birthtime).isoformat().ljust(max_value_length)} |",
-                f"| {'Last Modified'.ljust(max_key_length)} | {last_modified.ljust(max_value_length)} |",
-                f"| {'Size'.ljust(max_key_length)} | {(str(file_size) + ' bytes').ljust(max_value_length)} |",
-            ]
-
-            markdown_content.extend(file_table)
-            markdown_content.append("")
-        else:
-            # Just show relative path
-            markdown_content.append(f"**Path:** `{display_path}`")
+            markdown_content.append(f"### {Path(display_path).name}")
             markdown_content.append("")
 
-        # File content
-        markdown_content.append("**Content**:")
-        markdown_content.append("")
-        markdown_content.append("```" + get_markdown_mapping(full_path))
+            if file_meta:
+                # File metadata table
+                try:
+                    stat = full_path.stat()
+                    file_size = stat.st_size
+                    last_modified = datetime.fromtimestamp(stat.st_mtime).isoformat()
+                except Exception:
+                    file_size = "Unknown"
+                    last_modified = "Unknown"
 
+                max_key_length = len("Relative Path")
+                max_value_length = max(
+                    len(display_path), len(last_modified), len(str(file_size)) + 7
+                )  # +7 for " bytes"
+                file_table = [
+                    f"| {'Property'.ljust(max_key_length)} | {'Value'.ljust(max_value_length)} |",
+                    "|"
+                    + "-" * (max_key_length + 2)
+                    + "|"
+                    + "-" * (max_value_length + 2)
+                    + "|",
+                    f"| {'Relative Path'.ljust(max_key_length)} | {display_path.ljust(max_value_length)} |",
+                    f"| {'Created At'.ljust(max_key_length)} | {datetime.fromtimestamp(full_path.stat().st_birthtime).isoformat().ljust(max_value_length)} |",
+                    f"| {'Last Modified'.ljust(max_key_length)} | {last_modified.ljust(max_value_length)} |",
+                    f"| {'Size'.ljust(max_key_length)} | {(str(file_size) + ' bytes').ljust(max_value_length)} |",
+                ]
+
+                markdown_content.extend(file_table)
+                markdown_content.append("")
+            else:
+                # Just show relative path
+                markdown_content.append(f"**Path:** `{display_path}`")
+                markdown_content.append("")
+
+            # File content
+            markdown_content.append("**Content**:")
+            markdown_content.append("")
+            markdown_content.append("```" + get_markdown_mapping(full_path))
+        except FileNotFoundError:
+            markdown_content.append(f"Error: File {full_path} not found.")
+            markdown_content.append("```")
+            markdown_content.append("")
+            markdown_content.append("---")
+            markdown_content.append("")
+            continue
+        except Exception as e:
+            markdown_content.append(f"Error processing file {full_path}: {e}")
+            markdown_content.append("```")
+            markdown_content.append("")
+            markdown_content.append("---")
+            markdown_content.append("")
+            continue
         try:
             with open(full_path, "r", encoding="utf8", errors="replace") as f:
                 content = f.read()
