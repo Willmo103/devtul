@@ -13,7 +13,6 @@ app_root = Path(__file__).parent.parent.resolve()
 
 load_dotenv(dotenv_path=_env_path)
 
-INTERFACE_DB_URL = env["DB_CONN_INFO"]
 EDITOR = env["EDITOR"] if "EDITOR" in env else "code -w"
 DOT_ENV_PATH = _env_path
 SSH_PATH: Optional[Path] = (Path().home() / ".ssh") if Path().home().exists() else None

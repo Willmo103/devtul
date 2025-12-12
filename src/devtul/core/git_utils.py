@@ -12,7 +12,8 @@ import git
 import typer
 
 from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS
-from devtul.core.db.schemas import GitCommit, GitMetadata
+from devtul.core.models import GitMetadata
+from devtul.core.models import GitCommit
 
 
 def get_git_files(

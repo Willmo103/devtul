@@ -1,8 +1,22 @@
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
-from pydantic import BaseModel, Field
+from git import Optional
+from pydantic import BaseModel, Field, computed_field
 import yaml
+
+
+class MarkedDirectoryResult(BaseModel):
+    """
+    Schema for results from marked directory file retrieval.
+
+    Attributes:
+        directory: The path of the marked directory
+        files: List of file paths within the marked directory
+    """
+
+    directory: str = Field(..., description="Path of the marked directory")
+    marker_match: str = Field(..., description="The marker pattern used to identify the directory")
+    files: list[str] = Field(..., description="List of file paths within the marked directory")
 
 
 class GitCommit(BaseModel):
@@ -127,3 +141,48 @@ class UserTemplate(BaseModel):
 
     name: str
     content: str
+
+
+class DatabaseConfig:
+    """Schema for PostgreSQL database configuration."""
+
+    host: str = Field(..., description="Database host")
+    port: int = Field(..., description="Database port")
+    dbname: str = Field(..., description="Database name")
+    user: str = Field(..., description="Database user")
+    password: str = Field(..., description="Database password")
+
+    @computed_field
+    def conn_info(self) -> str:
+        """Construct the connection info string."""
+        return f'(host="{self.host}" port="{self.port}" dbname="{self.dbname}" user="{self.user}" password="{self.password}")'
+
+
+class PostgresDatabaseConfig(DatabaseConfig):
+    """Schema for PostgreSQL database configuration extending DatabaseConfig."""
+
+    pass
+
+
+class MySQLDatabaseConfig(DatabaseConfig):
+    """Schema for MySQL database configuration extending DatabaseConfig."""
+
+    pass
+
+
+class MsSQLDatabaseConfig(DatabaseConfig):
+    """Schema for MS SQL Server database configuration extending DatabaseConfig."""
+
+    pass
+
+
+class SQLiteDatabaseConfig(BaseModel):
+    """Schema for SQLite database configuration."""
+
+    file_path: str = Field(..., description="Path to the SQLite database file")
+
+
+class MongoDBDatabaseConfig(BaseModel):
+    """Schema for MongoDB database configuration."""
+
+    uri: str = Field(..., description="MongoDB connection URI")

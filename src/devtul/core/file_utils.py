@@ -99,3 +99,38 @@ def find_all_dirs_containing_file(
                     break  # No need to check other files in this path
 
     return sorted(matching_dirs)
+
+
+def get_all_files_from_marked_folders(
+    root: Path,
+    dir_marker: Optional[str],
+    ignore_parts: Optional[List[str]] = None,
+    ignore_patterns: Optional[List[str]] = None,
+    include_empty: bool = False,
+) -> List[str]:
+    """
+    Get all files from directories under root that contain folders matching the marker.
+
+    Args:
+        root: Root directory to start the search
+        dir_marker: Directory name pattern to look for (e.g., "src")
+        ignore_parts: List of strings that should not appear anywhere in the path
+        ignore_patterns: List of glob patterns to match against the path
+        include_empty: Whether to include empty files
+    Returns:
+        An array of MarkedDirectoryResult objects
+    """
+
+    all_files = []
+    marked_dirs = find_all_dirs_containing_marker_folder(root, dir_marker, recurse=True)
+
+    for marked_dir in marked_dirs:
+        files_in_dir = get_all_files(
+            marked_dir,
+            ignore_parts=ignore_parts,
+            ignore_patterns=ignore_patterns,
+            include_empty=include_empty,
+        )
+        all_files.extend(files_in_dir)
+
+    return sorted(all_files)

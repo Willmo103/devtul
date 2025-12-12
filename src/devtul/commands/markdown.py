@@ -16,7 +16,7 @@ from devtul.core import (
     get_git_metadata,
     write_to_file,
 )
-from devtul.core.db.schemas import RepoMarkdownHeader
+from devtul.core.models import RepoMarkdownHeader
 from devtul.core.file_utils import get_all_files
 from devtul.core.utils import get_markdown_mapping
 

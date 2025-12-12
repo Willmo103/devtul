@@ -7,7 +7,7 @@ from typing import List
 
 import typer
 
-from devtul.core.db.schemas import FileSearchMatch
+from devtul.core.models import FileSearchMatch
 
 
 def write_to_file(content: str, file_path: Path):

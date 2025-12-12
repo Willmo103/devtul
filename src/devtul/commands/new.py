@@ -2,7 +2,7 @@ import typer
 from pathlib import Path
 from typing import Optional
 from devtul.core.database import database
-from devtul.core.db.schemas import UserTemplate
+from devtul.core.models import UserTemplate
 from devtul.core.utils import edit_as_temp
 
 
