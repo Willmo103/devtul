@@ -66,7 +66,7 @@ def markdown(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if not git or not (path / ".git").exists():
+    if not git or not path / ".git".exists():
         GIT_MODE = False
         all_files = get_all_files(path, include_empty=include_empty)
     else:

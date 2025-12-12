@@ -143,7 +143,7 @@ class UserTemplate(BaseModel):
     content: str
 
 
-class DatabaseConfig:
+class DatabaseConfig(BaseModel):
     """Schema for PostgreSQL database configuration."""
 
     host: str = Field(..., description="Database host")
@@ -155,11 +155,22 @@ class DatabaseConfig:
     @computed_field
     def conn_info(self) -> str:
         """Construct the connection info string."""
-        return f'(host="{self.host}" port="{self.port}" dbname="{self.dbname}" user="{self.user}" password="{self.password}")'
+        return f"host={self.host} port={self.port} dbname={self.dbname} user={self.user} password={self.password}"
+
+
+class DatabaseConfig_DBModel(DatabaseConfig):
+    """Pydantic model for the sqlite-utils database representation of DatabaseConfig.
+    The only vairance is the type of the `conn_type` feild which is hidden and set from
+    the DB_CONN_TYPES enum.
+    """
+
+    conn_type: str = Field(..., description="Type of the database connection")
 
 
 class PostgresDatabaseConfig(DatabaseConfig):
     """Schema for PostgreSQL database configuration extending DatabaseConfig."""
+    port: int = Field(default=5432, description="Database port")
+    dbname: str = Field(default="postgres", description="Database name")
 
     pass
 

@@ -2,14 +2,13 @@
 Metadata command for devtul - displays git repository metadata.
 """
 
-# import json
 from pathlib import Path
 from typing import Optional
 
 import typer
 
 from devtul.core.utils import render_template
-from ..core import format_git_metadata_table, get_git_metadata, write_to_file
+from devtul.core import format_git_metadata_table, get_git_metadata, write_to_file
 
 
 def git_meta(

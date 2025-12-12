@@ -1,6 +1,5 @@
 from contextlib import contextmanager
 from devtul.core.models import (
-    DatabaseConfig,
     PostgresDatabaseConfig,
     MySQLDatabaseConfig,
     MsSQLDatabaseConfig,
@@ -10,7 +9,7 @@ from devtul.core.models import (
 
 
 @contextmanager
-def pg_session(database_config: DatabaseConfig):
+def pg_session(database_config: PostgresDatabaseConfig):
     try:
         import psycopg2 as pg
     except ImportError:
@@ -26,7 +25,7 @@ def pg_session(database_config: DatabaseConfig):
 
 
 @contextmanager
-def mysql_session(database_config: DatabaseConfig):
+def mysql_session(database_config: MySQLDatabaseConfig):
     conn_info = {
         "host": database_config.host,
         "port": database_config.port,
@@ -49,7 +48,7 @@ def mysql_session(database_config: DatabaseConfig):
 
 
 @contextmanager
-def mssql_session(database_config: DatabaseConfig):
+def mssql_session(database_config: MsSQLDatabaseConfig):
     conn_info = {
         "server": database_config.host,
         "port": database_config.port,
@@ -79,7 +78,7 @@ def mssql_session(database_config: DatabaseConfig):
 
 
 @contextmanager
-def sqlite_session(database_config: DatabaseConfig):
+def sqlite_session(database_config: SQLiteDatabaseConfig):
     try:
         import sqlite3  # type: ignore
     except ImportError:
@@ -95,7 +94,7 @@ def sqlite_session(database_config: DatabaseConfig):
 
 
 @contextmanager
-def mongodb_session(database_config: DatabaseConfig):
+def mongodb_session(database_config: MongoDBDatabaseConfig):
     try:
         from pymongo import MongoClient  # type: ignore
     except ImportError:
@@ -108,25 +107,3 @@ def mongodb_session(database_config: DatabaseConfig):
         yield client
     finally:
         client.close()
-
-
-@contextmanager
-def database_session(database_config: DatabaseConfig):
-    """Context manager to yield a database connection based on the type."""
-    if isinstance(database_config, PostgresDatabaseConfig):
-        with pg_session(database_config) as conn:
-            yield conn
-    elif isinstance(database_config, MySQLDatabaseConfig):
-        with mysql_session(database_config) as conn:
-            yield conn
-    elif isinstance(database_config, MsSQLDatabaseConfig):
-        with mssql_session(database_config) as conn:
-            yield conn
-    elif isinstance(database_config, SQLiteDatabaseConfig):
-        with sqlite_session(database_config) as conn:
-            yield conn
-    elif isinstance(database_config, MongoDBDatabaseConfig):
-        with mongodb_session(database_config) as client:
-            yield client
-    else:
-        raise ValueError("Unsupported database configuration type.")

@@ -382,9 +382,69 @@ MD_XREF = {
 }
 
 
+class ImageFormats(str, enum.Enum):
+    """Enumeration of supported image formats."""
+
+    PNG = "png"  # Portable Network Graphics
+    JPEG = "jpeg"  # Joint Photographic Experts Group
+    JPG = "jpg"  # Common abbreviation for JPEG
+    BMP = "bmp"  # Bitmap Image File
+    SVG = "svg"  # Scalable Vector Graphics
+    GIF = "gif"  # Graphics Interchange Format
+    WEBP = "webp"  # Web Picture format
+    TIFF = "tiff"  # Tagged Image File Format
+    HEIC = "heic"  # High Efficiency Image Coding
+    NEF = "nef"  # Nikon Electronic Format
+
+
+class DataFormats(str, enum.Enum):
+    """Enumeration of supported data formats."""
+
+    CSV = "csv"  # Comma-Separated Values
+    JSON = "json"  # JavaScript Object Notation
+    XML = "xml"  # eXtensible Markup Language
+    YAML = "yaml"  # YAML Ain't Markup Language
+    XLSX = "xlsx"  # Microsoft Excel Open XML Spreadsheet
+    PARQUET = "parquet"  # Apache Parquet
+    AVRO = "avro"  # Apache Avro
+    ORC = "orc"  # Optimized Row Columnar
+
+
+class VideoFormats(str, enum.Enum):
+    """Enumeration of supported video formats."""
+
+    MP4 = "mp4"  # MPEG-4 Part 14
+    AVI = "avi"  # Audio Video Interleave
+    MKV = "mkv"  # Matroska Video File
+    MOV = "mov"  # Apple QuickTime Movie
+    WMV = "wmv"  # Windows Media Video
+    FLV = "flv"  # Flash Video
+    WEBM = "webm"  # WebM Video File
+    MPG = "mpg"  # MPEG Video File
+    M4V = "m4v"  # iTunes Video File
+
+
 class OutputFormats(str, enum.Enum):
     """Enumeration of supported output formats."""
 
     JSON = "json"
     YAML = "yaml"
     CSV = "csv"
+
+
+class DB_CONN_TYPES(str, enum.Enum):
+    """Enumeration of supported database connection types."""
+
+    POSTGRES = "postgres"
+    MYSQL = "mysql"
+    MSSQL = "mssql"
+    SQLITE = "sqlite"
+    MONGODB = "mongodb"
+
+
+IMAGE_FORMAT_LIST: List[str] = [fmt.value for fmt in ImageFormats]
+DATA_FORMAT_LIST: List[str] = [fmt.value for fmt in DataFormats]
+VIDEO_FORMAT_LIST: List[str] = [fmt.value for fmt in VideoFormats]
+OUTPUT_FORMAT_LIST: List[str] = [fmt.value for fmt in OutputFormats]
+DB_CONN_TYPE_LIST: List[str] = [conn_type.value for conn_type in DB_CONN_TYPES]
+MARKDOWN_EXTENSIONS = list(MD_XREF.keys())

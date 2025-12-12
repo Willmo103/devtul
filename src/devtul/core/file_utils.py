@@ -13,6 +13,7 @@ def get_all_files(
     ignore_patterns: Optional[List[str]] = None,
     include_empty: bool = False,
     only_empty: bool = False,
+    override_ignore: bool = False,
 ) -> List[str]:
     """
     Get all files in a directory recursively, filtering by ignore patterns.
@@ -27,6 +28,14 @@ def get_all_files(
     Returns:
         List of relative file paths (strings)
     """
+    if override_ignore:
+        return sorted(
+            [
+                str(p.relative_to(path))
+                for p in path.rglob("*")
+                if p.is_file() and (include_empty or p.stat().st_size > 0)
+            ]
+        )
     all_files = []
     if ignore_parts is None:
         ignore_parts = IGNORE_PARTS

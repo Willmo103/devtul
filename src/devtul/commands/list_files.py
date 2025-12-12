@@ -46,6 +46,12 @@ def ls(
     csv: bool = typer.Option(
         False, "--csv", help="Output as CSV instead of plain text"
     ),
+    override_ignore: bool = typer.Option(
+        False,
+        "-o",
+        "--override-ignore",
+        help="Override default ignore patterns and include all files",
+    ),
 ):
     """
     List git tracked files with optional filtering.
@@ -58,11 +64,15 @@ def ls(
         ls ./my-repo --match "*.py" --print
         ls ./my-repo --sub-dir src -f files_list.txt
     """
+    if override_ignore:
+        git = False
+
+    all_files = []
     if not path.exists():
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if git:
+    if git and not override_ignore:
         if not (path / ".git").exists():
             all_files = get_all_files(
                 path, include_empty=include_empty, only_empty=only_empty
@@ -75,7 +85,10 @@ def ls(
     if not git:
         # Get all files
         all_files = get_all_files(
-            path, include_empty=include_empty, only_empty=only_empty
+            path,
+            include_empty=include_empty,
+            only_empty=only_empty,
+            override_ignore=override_ignore,
         )
 
     # Apply match/exclude filters
