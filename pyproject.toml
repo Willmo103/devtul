@@ -62,5 +62,25 @@ dev = [
     "pytest-cov>=4.1.0",
     "pre-commit>=3.4.0",
 ]
+
+[tool.uv_build]
+package-dir = "src"
+
 [project.scripts]
 dt = "devtul.main:main"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov=devtul --cov-report=term-missing"
+testpaths = ["tests"]
+
+[tool.pytest.coverage.run]
+branch = true
+source = ["devtul"]
+omit = ["tests/*", "src/devtul/__init__.py"]
+
+[tool.pytest.coverage.report]
+show_missing = true
+skip_covered = true
+precision = 2
+fail_under = 80

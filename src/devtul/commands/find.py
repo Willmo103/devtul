@@ -8,14 +8,11 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core.file_utils import get_all_files
+from devtul.core.file_utils import get_all_files, get_git_files, search_in_file
+from devtul.core.utils import write_to_file
 
-from ..core import (
+from devtul.core import (
     apply_filters,
-    get_git_files,
-    process_paths_for_subdir,
-    search_in_file,
-    write_to_file,
 )
 
 

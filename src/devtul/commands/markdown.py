@@ -10,15 +10,12 @@ import typer
 
 from devtul.core import (
     apply_filters,
-    build_tree_structure,
     format_git_metadata_table,
-    get_git_files,
     get_git_metadata,
-    write_to_file,
 )
 from devtul.core.models import RepoMarkdownHeader
-from devtul.core.file_utils import get_all_files
-from devtul.core.utils import get_markdown_mapping
+from devtul.core.file_utils import build_tree_structure, get_all_files, get_git_files
+from devtul.core.utils import get_markdown_mapping, write_to_file
 
 
 def markdown(

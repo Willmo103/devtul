@@ -5,6 +5,10 @@ from pydantic import BaseModel, Field, computed_field
 import yaml
 
 
+class FileResult:
+    path: Path
+
+
 class MarkedDirectoryResult(BaseModel):
     """
     Schema for results from marked directory file retrieval.
@@ -15,8 +19,12 @@ class MarkedDirectoryResult(BaseModel):
     """
 
     directory: str = Field(..., description="Path of the marked directory")
-    marker_match: str = Field(..., description="The marker pattern used to identify the directory")
-    files: list[str] = Field(..., description="List of file paths within the marked directory")
+    marker_match: str = Field(
+        ..., description="The marker pattern used to identify the directory"
+    )
+    files: list[str] = Field(
+        ..., description="List of file paths within the marked directory"
+    )
 
 
 class GitCommit(BaseModel):
@@ -144,18 +152,11 @@ class UserTemplate(BaseModel):
 
 
 class DatabaseConfig(BaseModel):
-    """Schema for PostgreSQL database configuration."""
+    """Base Configuration"""
 
-    host: str = Field(..., description="Database host")
-    port: int = Field(..., description="Database port")
-    dbname: str = Field(..., description="Database name")
-    user: str = Field(..., description="Database user")
-    password: str = Field(..., description="Database password")
-
-    @computed_field
-    def conn_info(self) -> str:
-        """Construct the connection info string."""
-        return f"host={self.host} port={self.port} dbname={self.dbname} user={self.user} password={self.password}"
+    host: str = Field("localhost", description="Database host")
+    user: str = Field("admin", description="Database user")
+    password: str = Field(..., description="Database password")  # No default, required
 
 
 class DatabaseConfig_DBModel(DatabaseConfig):
@@ -168,32 +169,46 @@ class DatabaseConfig_DBModel(DatabaseConfig):
 
 
 class PostgresDatabaseConfig(DatabaseConfig):
-    """Schema for PostgreSQL database configuration extending DatabaseConfig."""
-    port: int = Field(default=5432, description="Database port")
-    dbname: str = Field(default="postgres", description="Database name")
+    port: int = Field(5432, description="Port")
+    dbname: str = Field("postgres", description="Database Name")
 
-    pass
+    @computed_field
+    def conn_info(self) -> str:
+        return f"dbname='{self.dbname}' user='{self.user}' host='{self.host}' password='{self.password}' port='{self.port}'"
 
 
 class MySQLDatabaseConfig(DatabaseConfig):
-    """Schema for MySQL database configuration extending DatabaseConfig."""
-
-    pass
+    port: int = Field(3306, description="Port")
+    dbname: str = Field(..., description="Database Name")
 
 
 class MsSQLDatabaseConfig(DatabaseConfig):
-    """Schema for MS SQL Server database configuration extending DatabaseConfig."""
-
-    pass
+    port: int = Field(1433, description="Port")
+    dbname: str = Field("master", description="Database Name")
 
 
 class SQLiteDatabaseConfig(BaseModel):
-    """Schema for SQLite database configuration."""
-
-    file_path: str = Field(..., description="Path to the SQLite database file")
+    file_path: str = Field(
+        "data.db", description="Path to SQLite file relative to execution"
+    )
 
 
 class MongoDBDatabaseConfig(BaseModel):
-    """Schema for MongoDB database configuration."""
+    uri: str = Field("mongodb://localhost:27017", description="MongoDB Connection URI")
 
-    uri: str = Field(..., description="MongoDB connection URI")
+
+class Service(BaseModel):
+    name: str = Field(..., description="Service name")
+    port: Optional[int] = Field(None, description="Service port")
+    status: str = Field(
+        "undefined", description="Service status (e.g., running, stopped)"
+    )
+    dsescription: Optional[str] = Field(None, description="Service description")
+
+
+class Server(BaseModel):
+    hostname: str = Field(..., description="Server hostname")
+    ip_address: str = Field(..., description="Server IP address")
+    services: list[Service] = Field(
+        ..., description="List of services running on the server"
+    )

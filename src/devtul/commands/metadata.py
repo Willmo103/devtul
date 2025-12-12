@@ -7,8 +7,8 @@ from typing import Optional
 
 import typer
 
-from devtul.core.utils import render_template
-from devtul.core import format_git_metadata_table, get_git_metadata, write_to_file
+from devtul.core.utils import render_template, write_to_file
+from devtul.core import format_git_metadata_table, get_git_metadata
 
 
 def git_meta(

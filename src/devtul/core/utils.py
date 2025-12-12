@@ -4,6 +4,7 @@ from uuid import uuid4
 from pydantic import BaseModel
 from typing import Any, Dict, Optional
 from jinja2 import Template
+import typer
 import yaml
 
 from devtul.core.config import EDITOR, app_root
@@ -181,3 +182,14 @@ def create_base64_image_tag(
     if fpath:
         image_type = fpath.suffix.lstrip(".").lower()
     return f'<img src="data:image/{image_type};base64,{b64_string}" alt="Embedded Image" />'
+
+
+def write_to_file(content: str, file_path: Path):
+    """Write content to file and/or stdout based on options."""
+    try:
+        with open(file_path, "w", encoding="utf8") as f:
+            f.write(content)
+        typer.echo(f"Output written to: {file_path}")
+    except Exception as e:
+        typer.echo(f"Error writing to file {file_path}: {e}", err=True)
+        raise typer.Exit(1)

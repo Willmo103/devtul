@@ -7,9 +7,10 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core.file_utils import get_all_files
+from devtul.core.file_utils import build_tree_structure, get_all_files, get_git_files
+from ..core.utils import write_to_file
 
-from ..core import apply_filters, build_tree_structure, get_git_files, write_to_file
+from ..core import apply_filters
 
 
 def tree(

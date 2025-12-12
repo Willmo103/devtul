@@ -31,12 +31,15 @@ def list_pg_databases(database_config: DatabaseConfig) -> list[str]:
     try:
         with pg_session(database_config) as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
+                cursor.execute(
+                    "SELECT datname FROM pg_database WHERE datistemplate = false;"
+                )
                 rows = cursor.fetchall()
                 databases = [row[0] for row in rows]
     except Exception:
         pass
     return databases
+
 
 def list_pg_tables(database_config: DatabaseConfig) -> list[str]:
     """List all tables in the connected PostgreSQL database using the provided configuration.
@@ -61,6 +64,7 @@ def list_pg_tables(database_config: DatabaseConfig) -> list[str]:
     except Exception:
         pass
     return tables
+
 
 def get_pg_table_columns(database_config: DatabaseConfig, table_name: str) -> list[str]:
     """Get column names of a specific table in the connected PostgreSQL database.
@@ -88,7 +92,10 @@ def get_pg_table_columns(database_config: DatabaseConfig, table_name: str) -> li
         pass
     return columns
 
-def get_pg_primary_key(database_config: DatabaseConfig, table_name: str) -> Optional[str]:
+
+def get_pg_primary_key(
+    database_config: DatabaseConfig, table_name: str
+) -> Optional[str]:
     """Get the primary key column of a specific table in the connected PostgreSQL database.
     Args:
         database_config: DatabaseConfig object containing the connection details
@@ -115,6 +122,7 @@ def get_pg_primary_key(database_config: DatabaseConfig, table_name: str) -> Opti
     except Exception:
         pass
     return primary_key
+
 
 def get_pg_table_info(database_config: DatabaseConfig, table_name: str) -> dict:
     """Get detailed information about a specific table in the connected PostgreSQL database.
@@ -149,7 +157,7 @@ def get_pg_table_info(database_config: DatabaseConfig, table_name: str) -> dict:
                     (table_name,),
                 )
                 table_info["columns"] = [
-                    {"name": row[0], "type": row[1], "is_nullable": row[2] == 'YES'}
+                    {"name": row[0], "type": row[1], "is_nullable": row[2] == "YES"}
                     for row in cursor.fetchall()
                 ]
                 # Get primary key
@@ -194,6 +202,7 @@ def get_pg_table_info(database_config: DatabaseConfig, table_name: str) -> dict:
     except Exception:
         pass
     return table_info
+
 
 def get_pg_database_info(database_config: DatabaseConfig):
     """Get detailed information about the connected PostgreSQL database.
