@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 from git import Optional
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 from devtul.core.constants import FileContentStatus
 import yaml
 
@@ -10,7 +10,7 @@ class FileResult:
     full_path: Path
     relative_path: Path
     size: int
-    empty_state: FileContentStatus
+    content_status: FileContentStatus
     created_at: Optional[datetime]
     modified_at: Optional[datetime]
 
@@ -18,15 +18,32 @@ class FileResult:
         self,
         file_path: Path,
         input_path: Path,
+        created_at: Optional[datetime] = None,
+        modified_at: Optional[datetime] = None,
     ):
         self.full_path = file_path.resolve()
         self.relative_path = file_path.resolve().relative_to(input_path.resolve())
+        if created_at and modified_at:
+            self.created_at = created_at
+            self.modified_at = modified_at
+            try:
+                stat = file_path.stat(follow_symlinks=False)
+                self.size = stat.st_size
+                self.content_status = (
+                    FileContentStatus.EMPTY
+                    if self.size == 0
+                    else FileContentStatus.NON_EMPTY
+                )
+            except Exception:
+                self.size = -1
+                self.content_status = FileContentStatus.UNKNOWN
+            return
         try:
             stat = file_path.stat(
                 follow_symlinks=False
             )  # not using os.stat to avoid symlink issues
             self.size = stat.st_size
-            self.empty_state = (
+            self.content_status = (
                 FileContentStatus.EMPTY
                 if self.size == 0
                 else FileContentStatus.NON_EMPTY
@@ -39,9 +56,67 @@ class FileResult:
             ) or datetime.fromtimestamp(stat.st_mtime_ns / 1e9)
         except Exception:
             self.size = -1
-            self.empty_state = FileContentStatus.UNKNOWN
+            self.content_status = FileContentStatus.UNKNOWN
             self.created_at = None
             self.modified_at = None
+
+    def __dict__(self):
+        return {
+            "full_path": self.full_path.as_posix(),
+            "relative_path": self.relative_path.as_posix(),
+            "size": self.size,
+            "content_state": self.content_status.value,
+            "created_at": self.created_at.isoformat() if self.created_at else "Unknown",
+            "modified_at": (
+                self.modified_at.isoformat() if self.modified_at else "Unknown"
+            ),
+        }
+
+    def __str__(self):
+        return str(self.__dict__())
+
+    def __repr__(self):
+        return f"FileResult(full_path={self.full_path}, relative_path={self.relative_path}, size={self.size}, content_state={self.content_status}, created_at={self.created_at}, modified_at={self.modified_at})"
+
+    def to_yaml(self):
+        return yaml.dump(self.__dict__())
+
+    def to_model(self) -> "FileResultModel":
+        return FileResultModel(
+            full_path=self.full_path.as_posix(),
+            relative_path=self.relative_path.as_posix(),
+            size=self.size,
+            content_state=self.content_status.value,
+            created_at=self.created_at.isoformat() if self.created_at else None,
+            modified_at=self.modified_at.isoformat() if self.modified_at else None,
+        )
+
+
+class FileResultModel(BaseModel):
+    id: Optional[int] = Field(None, description="Database ID")
+    scan_date: Optional[str] = Field(
+        None, description="Timestamp of when the file was scanned"
+    )
+    full_path: str = Field(..., description="Full path of the file")
+    relative_path: str = Field(..., description="Relative path of the file")
+    size: int = Field(..., description="Size of the file in bytes")
+    content_state: str = Field(..., description="Empty state of the file")
+    created_at: Optional[str] = Field(
+        None, description="Creation timestamp of the file"
+    )
+    modified_at: Optional[str] = Field(
+        None, description="Last modified timestamp of the file"
+    )
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+class FileContentModel(BaseModel):
+    """Schema for file content retrieval results."""
+
+    id: Optional[int] = Field(None, description="Database ID")
+    file_result_id: int = Field(..., description="ID of the associated FileResult")
+    content: str = Field(..., description="Content of the file")
 
 
 class MarkedDirectoryResult(BaseModel):
@@ -272,3 +347,5 @@ class FileResultsModel(BaseModel):
     ignored_files: list[str] = Field([], description="List of ignored file paths")
     empty_files: list[str] = Field([], description="List of empty file paths")
     empty_dirs: list[str] = Field([], description="List of empty directory paths")
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
