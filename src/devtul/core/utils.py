@@ -74,7 +74,13 @@ def edit_file_in_editor(file_path: Path, return_content: bool = False) -> None:
     if EDITOR is None:
         raise ValueError("No editor specified. Please set the EDITOR variable.")
     print(f"Opening file '{file_path}' in editor '{EDITOR}'...")
-    subprocess.run([EDITOR, file_path.as_posix()], shell=True)
+    subprocess.run(
+        EDITOR.split() + [file_path.as_posix()],
+        shell=True,
+        check=True,
+        capture_output=False,
+        text=True,
+    )
     # wait for the editor to close before returning
     if return_content:
         input("Press Enter to continue when done editing...")

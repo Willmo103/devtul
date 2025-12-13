@@ -15,7 +15,7 @@ def user_template_from_file(fpath: Path, name: Optional[str]) -> UserTemplate:
 
 def user_template_from_editor(name: str) -> UserTemplate:
     """Create a UserTemplate instance from the editor."""
-    content = edit_as_temp(content="", file_name=name)
+    content = edit_as_temp(content="", file_path=None)
     return UserTemplate(name=name, content=content)
 
 

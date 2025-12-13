@@ -11,3 +11,4 @@ wheels/
 *codebase*
 *.spec
 .vscode/settings.json
+temp/

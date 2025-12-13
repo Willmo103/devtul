@@ -2,11 +2,46 @@ from datetime import datetime, timezone
 from pathlib import Path
 from git import Optional
 from pydantic import BaseModel, Field, computed_field
+from devtul.core.constants import FileContentStatus
 import yaml
 
 
 class FileResult:
-    path: Path
+    full_path: Path
+    relative_path: Path
+    size: int
+    empty_state: FileContentStatus
+    created_at: Optional[datetime]
+    modified_at: Optional[datetime]
+
+    def __init__(
+        self,
+        file_path: Path,
+        input_path: Path,
+    ):
+        self.full_path = file_path.resolve()
+        self.relative_path = file_path.resolve().relative_to(input_path.resolve())
+        try:
+            stat = file_path.stat(
+                follow_symlinks=False
+            )  # not using os.stat to avoid symlink issues
+            self.size = stat.st_size
+            self.empty_state = (
+                FileContentStatus.EMPTY
+                if self.size == 0
+                else FileContentStatus.NON_EMPTY
+            )
+            self.created_at = datetime.fromtimestamp(
+                stat.st_birthtime
+            ) or datetime.fromtimestamp(stat.st_ctime_ns / 1e9)
+            self.modified_at = datetime.fromtimestamp(
+                stat.st_mtime
+            ) or datetime.fromtimestamp(stat.st_mtime_ns / 1e9)
+        except Exception:
+            self.size = -1
+            self.empty_state = FileContentStatus.UNKNOWN
+            self.created_at = None
+            self.modified_at = None
 
 
 class MarkedDirectoryResult(BaseModel):
@@ -197,18 +232,28 @@ class MongoDBDatabaseConfig(BaseModel):
     uri: str = Field("mongodb://localhost:27017", description="MongoDB Connection URI")
 
 
-class Service(BaseModel):
+class HostService(BaseModel):
+    id: Optional[int] = Field(None, description="Database ID")
     name: str = Field(..., description="Service name")
     port: Optional[int] = Field(None, description="Service port")
     status: str = Field(
         "undefined", description="Service status (e.g., running, stopped)"
     )
     dsescription: Optional[str] = Field(None, description="Service description")
+    host_ip: Optional[str] = Field(None, description="IP address of the host")
 
 
-class Server(BaseModel):
+class NetworkHost(BaseModel):
+    id: Optional[int] = Field(None, description="Database ID")
     hostname: str = Field(..., description="Server hostname")
     ip_address: str = Field(..., description="Server IP address")
-    services: list[Service] = Field(
-        ..., description="List of services running on the server"
+    mac_address: Optional[str] = Field(None, description="Server MAC address")
+    description: Optional[str] = Field(None, description="Server description")
+
+
+class ScanningRoot(BaseModel):
+    id: Optional[int] = Field(None, description="Database ID")
+    path: str = Field(..., description="Path to the scanning root")
+    description: Optional[str] = Field(
+        None, description="Description of the scanning root"
     )

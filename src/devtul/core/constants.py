@@ -108,6 +108,8 @@ IGNORE_PARTS: List[str] = [
     ".mypy_cache*",
     ".mypy.ini",
     "packages",
+    "uv.lock",
+    ".python-version",
 ]
 
 IGNORE_EXTENSIONS: List[str] = [
@@ -440,6 +442,14 @@ class DB_CONN_TYPES(str, enum.Enum):
     MSSQL = "mssql"
     SQLITE = "sqlite"
     MONGODB = "mongodb"
+
+
+class FileContentStatus(str, enum.Enum):
+    """Enumeration of file modes."""
+
+    EMPTY = "empty"
+    NOT_EMPTY = "not_empty"
+    UNKNOWN = "unknown"
 
 
 IMAGE_FORMAT_LIST: List[str] = [fmt.value for fmt in ImageFormats]
