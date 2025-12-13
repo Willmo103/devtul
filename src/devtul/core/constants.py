@@ -452,6 +452,13 @@ class FileContentStatus(str, enum.Enum):
     UNKNOWN = "unknown"
 
 
+class GitScanModes(str, enum.Enum):
+    """Enumeration of git scan modes."""
+
+    GIT_TRACKED = "git-tracked"
+    ALL_FILES = "all-files"
+
+
 IMAGE_FORMAT_LIST: List[str] = [fmt.value for fmt in ImageFormats]
 DATA_FORMAT_LIST: List[str] = [fmt.value for fmt in DataFormats]
 VIDEO_FORMAT_LIST: List[str] = [fmt.value for fmt in VideoFormats]

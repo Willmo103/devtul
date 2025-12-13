@@ -7,9 +7,183 @@ from os import walk
 from pathlib import Path
 from typing import List, Optional
 
-from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS
+from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS, GitScanModes
 from devtul.core.filters import should_ignore_path
-from devtul.core.models import FileSearchMatch
+from devtul.core.models import FileSearchMatch, FileResult, FileResultsModel
+
+
+def gather_all_paths(root: Path) -> List[Path]:
+    """Gather all file and directory paths under the root directory."""
+    all_paths = []
+    for dirpath, dirnames, filenames in walk(root):
+        for dirname in dirnames:
+            all_paths.append(Path(dirpath) / dirname)
+        for filename in filenames:
+            all_paths.append(Path(dirpath) / filename)
+    return all_paths
+
+
+def gather_all_git_tracked_paths(repo_path: Path) -> List[Path]:
+    """Gather all git-tracked file and directory paths under the repository path."""
+    tracked_paths = []
+    (shell := os.name == "nt")
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(repo_path), "ls-files"],
+            capture_output=True,
+            text=True,
+            check=True,
+            shell=shell,
+        )
+        files = [f.strip() for f in result.stdout.splitlines() if f.strip()]
+        for f in files:
+            tracked_paths.append(repo_path / f)
+    except subprocess.CalledProcessError as e:
+        # check to see if git repo needs to be added as a safe directory
+        if "detected dubious ownership" in e.stderr:
+            # ask to add repo as safe directory
+            typer.echo(
+                "Git repository has dubious ownership. Should it be added to the .gitconfig safe.directory list? (y/n): ",
+                nl=False,
+            )
+            choice = input().strip().lower()
+            if choice == "y":
+                try:
+                    subprocess.run(
+                        [
+                            "git",
+                            "config",
+                            "--global",
+                            "--add",
+                            "safe.directory",
+                            str(repo_path),
+                        ],
+                        capture_output=True,
+                        text=True,
+                        check=True,
+                        shell=shell,
+                    )
+                    typer.echo(f"Added {repo_path} to safe.directory list.")
+                    # Retry gathering git tracked paths
+                    return gather_all_git_tracked_paths(repo_path)
+                except subprocess.CalledProcessError as e2:
+                    typer.echo(f"Error adding to safe.directory: {e2.stderr}", err=True)
+                    return tracked_paths
+        typer.echo(f"Error: Unable to get git files from {repo_path}", err=True)
+        typer.echo(f"Git error: {e.stderr}", err=True)
+        return tracked_paths
+    return tracked_paths
+
+
+def filter_gathered_paths_by_path_parts(
+    paths: List[Path], ignore_parts: List[str]
+) -> List[Path]:
+    """
+    Filter gathered paths by ignoring those that contain specified path parts.
+    Args:
+        paths: List of gathered file and directory paths
+        ignore_parts: List of strings that should not appear anywhere in the path
+    Returns:
+        Filtered list of paths
+    """
+    filtered_paths = []
+    for path in paths:
+        if not any(ign in path.as_posix() for ign in ignore_parts):
+            filtered_paths.append(path)
+    return filtered_paths
+
+
+def filter_gathered_paths_by_patterns(
+    paths: List[Path], ignore_patterns: List[str]
+) -> List[Path]:
+    """
+    Filter gathered paths by ignoring those that match specified glob patterns.
+    Args:
+        paths: List of gathered file and directory paths
+        ignore_patterns: List of glob patterns to match against the path
+    Returns:
+        Filtered list of paths
+    """
+    filtered_paths = []
+    for path in paths:
+        if not any(fnmatch.fnmatch(path.name, pattern) for pattern in ignore_patterns):
+            filtered_paths.append(path)
+    return filtered_paths
+
+
+def filter_paths_for_empty_folders(
+    paths: List[Path],
+) -> tuple[List[Path], List[Path]]:
+    """
+    Filter paths into empty folders and non-empty folders.
+    Args:
+        paths: List of gathered file and directory paths
+    Returns:
+        Tuple of (non-empty paths, empty folder paths)
+    """
+    non_empty_paths = []
+    empty_folder_paths = []
+    folder_contents = {}
+
+    for path in paths:
+        parent = path.parent
+        if parent not in folder_contents:
+            folder_contents[parent] = []
+        folder_contents[parent].append(path)
+
+    for path in paths:
+        if path.is_dir():
+            if path in folder_contents and len(folder_contents[path]) == 0:
+                empty_folder_paths.append(path)
+            else:
+                non_empty_paths.append(path)
+        else:
+            non_empty_paths.append(path)
+
+    return non_empty_paths, empty_folder_paths
+
+
+def filter_paths_for_empty_files(
+    paths: List[Path],
+) -> tuple[List[Path], List[Path]]:
+    """
+    Filter paths into empty files and non-empty files.
+    Args:
+        paths: List of gathered file and directory paths
+    Returns:
+        Tuple of (non-empty file paths, empty file paths)
+    """
+    non_empty_file_paths = []
+    empty_file_paths = []
+
+    for path in paths:
+        if path.is_file():
+            if path.stat().st_size == 0:
+                empty_file_paths.append(path)
+            else:
+                non_empty_file_paths.append(path)
+
+    return non_empty_file_paths, empty_file_paths
+
+
+def prompt_on_git_folder_detection(path: Path) -> str:
+    """
+    Prompt the user for action when a git folder is detected.
+    Args:
+        path: Path where the git folder was detected
+    Returns:
+        User's GitScanModes choice
+    """
+    typer.echo(f"Git repository detected at {path}. and no --git option was provided.")
+    typer.echo("Choose how to proceed:")
+    typer.echo("1) Scan using git tracked files only")
+    typer.echo("2) Scan all files, ignoring git")
+    typer.echo("3) Cancel operation")
+    choice = input("Enter your choice (1/2/3): ").strip()
+    if choice == "1":
+        return GitScanModes.GIT_TRACKED
+    elif choice == "2":
+        return GitScanModes.ALL_FILES
 
 
 def get_all_files(

@@ -257,3 +257,18 @@ class ScanningRoot(BaseModel):
     description: Optional[str] = Field(
         None, description="Description of the scanning root"
     )
+
+
+class FileResultsModel(BaseModel):
+    root_path: str = Field(..., description="Root path for the scan")
+    total_files: int = Field(..., description="Total number of files scanned")
+    time_scanned: float = Field(..., description="Time taken to scan in seconds")
+    git_metadata: Optional[GitMetadata] = Field(
+        None, description="Git metadata if the root is a git repository"
+    )
+    tracked_files: list[FileResult] = Field(
+        ..., description="List of tracked file results"
+    )
+    ignored_files: list[str] = Field([], description="List of ignored file paths")
+    empty_files: list[str] = Field([], description="List of empty file paths")
+    empty_dirs: list[str] = Field([], description="List of empty directory paths")
