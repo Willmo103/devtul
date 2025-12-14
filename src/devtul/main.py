@@ -14,7 +14,7 @@ from .commands import (
     markdown,
     tree,
     new_cli,
-    db_con,
+    db_cli,
 )
 
 app = typer.Typer(
@@ -37,6 +37,12 @@ app.add_typer(
 )
 app.command(name="version", help="Show the DevTul version and exit")(
     lambda: typer.echo(__version__)
+)
+app.add_typer(
+    db_cli,
+    name="db",
+    help="Database related commands",
+    no_args_is_help=True,
 )
 
 

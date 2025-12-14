@@ -20,45 +20,6 @@ from devtul.core.db.session import (
 )
 
 
-T = TypeVar("T", bound=BaseModel)
-
-
-def prompt_for_model(model_class: Type[T]) -> T:
-    """
-    Generic function to interactively populate any Pydantic model.
-
-    - Respects field types (int, str, etc.)
-    - Uses field descriptions for prompt text
-    - Uses field defaults if available
-    - Skips computed or internal fields
-    """
-    user_data = {}
-
-    for field_name, field_info in model_class.model_fields.items():
-        # Skip fields marked as computed or internal logic
-        if field_name in ["conn_info", "conn_type"]:
-            continue
-
-        # Determine the prompt text
-        text = (
-            field_info.description if field_info.description else f"Enter {field_name}"
-        )
-
-        # Handle Defaults
-        # field_info.default is the value, field_info.default is Pydantic's formatting
-        default_val = field_info.default
-
-        # If Pydantic says the default is "PydanticUndefined", treat it as required
-        if field_info.is_required():
-            val = typer.prompt(text, type=field_info.annotation)
-        else:
-            val = typer.prompt(text, default=default_val, type=field_info.annotation)
-
-        user_data[field_name] = val
-
-    return model_class(**user_data)
-
-
 # 1. Map Types to Models
 MODEL_MAP = {
     DB_CONN_TYPES.POSTGRES: PostgresDatabaseConfig,
@@ -75,6 +36,27 @@ SESSION_MAP = {
     DB_CONN_TYPES.MSSQL: mssql_session,
     DB_CONN_TYPES.SQLITE: sqlite_session,
     DB_CONN_TYPES.MONGODB: mongodb_session,
+}
+
+USER_DEFAULT_MAP = {
+    DB_CONN_TYPES.POSTGRES: "postgres",
+    DB_CONN_TYPES.MYSQL: "root",
+    DB_CONN_TYPES.MSSQL: "sa",
+    DB_CONN_TYPES.MONGODB: "admin",
+}
+
+PORT_DEFAULT_MAP = {
+    DB_CONN_TYPES.POSTGRES: 5432,
+    DB_CONN_TYPES.MYSQL: 3306,
+    DB_CONN_TYPES.MSSQL: 1433,
+    DB_CONN_TYPES.MONGODB: 27017,
+}
+
+SERVICE_DATABASE_MAP = {
+    DB_CONN_TYPES.POSTGRES: "postgres",
+    DB_CONN_TYPES.MYSQL: "mysql",
+    DB_CONN_TYPES.MSSQL: "master",
+    DB_CONN_TYPES.MONGODB: "admin",
 }
 
 
@@ -116,26 +98,81 @@ def interactive_create_database_connection():
         default=DB_CONN_TYPES.POSTGRES.value,
     )
 
-    while True:
-        # Generic Prompt
-        model_class = MODEL_MAP[conn_type]
-        config = prompt_for_model(model_class)
+    model_class: DatabaseConfig = MODEL_MAP[conn_type]
+    if model_class == SQLiteDatabaseConfig:
+        typer.echo("Configuring SQLite connection...")
+        db_path = Prompt.ask("Enter SQLite database file path", default=":memory:")
+        config = SQLiteDatabaseConfig(db_path=db_path)
+        return config, conn_type
+    elif model_class in [
+        MongoDBDatabaseConfig,
+        PostgresDatabaseConfig,
+        MySQLDatabaseConfig,
+        MsSQLDatabaseConfig,
+    ]:
 
-        # Test Connection
-        is_valid = verify_connection(config, conn_type)
-
-        if is_valid:
-            return config, conn_type
-
-        # If invalid, ask user what to do
-        action = Prompt.ask(
-            "Connection failed. What would you like to do?",
-            choices=["retry", "save anyway", "abort"],
-            default="retry",
+        typer.echo(f"Configuring {conn_type} connection...")
+        host = Prompt.ask("Enter database host", default="localhost")
+        user = Prompt.ask(
+            "Enter database user", default=USER_DEFAULT_MAP.get(conn_type, "admin")
         )
-
-        if action == "save anyway":
+        password = Prompt.ask("Enter database password", password=True, default="")
+        port = Prompt.ask(
+            "Enter database port",
+            default=str(PORT_DEFAULT_MAP.get(conn_type, "")),
+            show_default=True,
+        )
+        dbname = Prompt.ask(
+            "Enter database name", default=SERVICE_DATABASE_MAP.get(conn_type, "")
+        )
+        config = model_class(
+            host=host,
+            user=user,
+            password=password,
+            port=int(port),
+            dbname=dbname,
+        )
+        if verify_connection(config, conn_type):
             return config, conn_type
-        elif action == "abort":
-            raise typer.Exit()
-        # If retry, loop continues and prompts again
+        else:
+            # Prompt to alter the config or exit
+            retry = Prompt.ask(
+                "Connection failed. Do you want to retry? (y/n)",
+                choices=["y", "n"],
+                default="n",
+            )
+            if retry == "y":
+                while True:
+                    host = Prompt.ask("Enter database host", default=config.host)
+                    user = Prompt.ask("Enter database user", default=config.user)
+                    password = Prompt.ask(
+                        "Enter database password",
+                        password=True,
+                        default=config.password,
+                    )
+                    port = Prompt.ask(
+                        "Enter database port",
+                        default=str(config.port),
+                        show_default=True,
+                    )
+                    dbname = Prompt.ask("Enter database name", default=config.dbname)
+                    config = model_class(
+                        host=host,
+                        user=user,
+                        password=password,
+                        port=int(port),
+                        dbname=dbname,
+                    )
+                    if verify_connection(config, conn_type):
+                        return config, conn_type
+                    else:
+                        # Ask if they want to save anyway or retry
+                        save_anyway = Prompt.ask(
+                            "Connection failed again. Do you want to save anyway? (y/n)",
+                            choices=["y", "n"],
+                            default="n",
+                        )
+                        if save_anyway == "y":
+                            return config, conn_type
+            typer.secho("Exiting without saving configuration.", fg=typer.colors.RED)
+            raise typer.Exit(1)

@@ -10,7 +10,7 @@ from .markdown import markdown
 from .metadata import git_meta
 from .tree import tree
 from .new import app as new_cli
-from .db import create_database_connection as db_con
+from .db import db_cli
 
 __all__ = [
     "find",
@@ -21,5 +21,5 @@ __all__ = [
     "find_folder",
     "empty",
     "new_cli",
-    "db_con",
+    "db_cli",
 ]

@@ -32,7 +32,7 @@ class FileResult:
                 self.content_status = (
                     FileContentStatus.EMPTY
                     if self.size == 0
-                    else FileContentStatus.NON_EMPTY
+                    else FileContentStatus.NOT_EMPTY
                 )
             except Exception:
                 self.size = -1
@@ -46,14 +46,18 @@ class FileResult:
             self.content_status = (
                 FileContentStatus.EMPTY
                 if self.size == 0
-                else FileContentStatus.NON_EMPTY
+                else FileContentStatus.NOT_EMPTY
             )
-            self.created_at = datetime.fromtimestamp(
-                stat.st_birthtime
-            ) or datetime.fromtimestamp(stat.st_ctime_ns / 1e9)
-            self.modified_at = datetime.fromtimestamp(
-                stat.st_mtime
-            ) or datetime.fromtimestamp(stat.st_mtime_ns / 1e9)
+            # st_birthtime is Unix/Linux specific; st_ctime_ns is for Windows/macOS creation time.
+            # Using fromtimestamp(ns / 1e9) as a fallback is a good cross-platform attempt.
+            self.created_at = (
+                datetime.fromtimestamp(stat.st_birthtime)
+                if "st_birthtime" in dir(stat)
+                else datetime.fromtimestamp(stat.st_ctime_ns / 1e9)
+            )
+
+            self.modified_at = datetime.fromtimestamp(stat.st_mtime)
+
         except Exception:
             self.size = -1
             self.content_status = FileContentStatus.UNKNOWN
@@ -82,6 +86,15 @@ class FileResult:
         return yaml.dump(self.__dict__())
 
     def to_model(self) -> "FileResultModel":
+        # Placeholder for FileResultModel, assumed to be a Pydantic model
+        class FileResultModel(BaseModel):
+            full_path: str
+            relative_path: str
+            size: int
+            content_state: str
+            created_at: Optional[str]
+            modified_at: Optional[str]
+
         return FileResultModel(
             full_path=self.full_path.as_posix(),
             relative_path=self.relative_path.as_posix(),
@@ -267,6 +280,12 @@ class DatabaseConfig(BaseModel):
     host: str = Field("localhost", description="Database host")
     user: str = Field("admin", description="Database user")
     password: str = Field(..., description="Database password")  # No default, required
+    dbname: Optional[str] = Field(None, description="Database name")
+    port: Optional[int] = Field(None, description="Database port")
+
+    @computed_field
+    def conn_info(self) -> str:
+        return f"host={self.host} port={self.port} dbname={self.dbname} user={self.user} password={self.password}"
 
 
 class DatabaseConfig_DBModel(DatabaseConfig):
@@ -279,22 +298,33 @@ class DatabaseConfig_DBModel(DatabaseConfig):
 
 
 class PostgresDatabaseConfig(DatabaseConfig):
-    port: int = Field(5432, description="Port")
-    dbname: str = Field("postgres", description="Database Name")
 
-    @computed_field
-    def conn_info(self) -> str:
-        return f"dbname='{self.dbname}' user='{self.user}' host='{self.host}' password='{self.password}' port='{self.port}'"
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.port is None:
+            self.port = 5432
+        if self.dbname is None:
+            self.dbname = "postgres"
 
 
 class MySQLDatabaseConfig(DatabaseConfig):
-    port: int = Field(3306, description="Port")
-    dbname: str = Field(..., description="Database Name")
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.port is None:
+            self.port = 3306
+        if self.dbname is None:
+            self.dbname = "mysql"
 
 
 class MsSQLDatabaseConfig(DatabaseConfig):
-    port: int = Field(1433, description="Port")
-    dbname: str = Field("master", description="Database Name")
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.port is None:
+            self.port = 1433
+        if self.dbname is None:
+            self.dbname = "master"
 
 
 class SQLiteDatabaseConfig(BaseModel):
@@ -303,8 +333,17 @@ class SQLiteDatabaseConfig(BaseModel):
     )
 
 
-class MongoDBDatabaseConfig(BaseModel):
-    uri: str = Field("mongodb://localhost:27017", description="MongoDB Connection URI")
+class MongoDBDatabaseConfig(DatabaseConfig):
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.port is None:
+            self.port = 27017
+        if self.dbname is None:
+            self.dbname = "admin"
+
+    @computed_field
+    def uri(self) -> str:
+        return f"mongodb://{self.user}:{self.password}@{self.host}:{self.port}/{self.dbname}"
 
 
 class HostService(BaseModel):
