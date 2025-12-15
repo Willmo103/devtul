@@ -1,5 +1,7 @@
 from contextlib import contextmanager
+from devtul.core.constants import DB_CONN_TYPES
 from devtul.core.models import (
+    DatabaseConfig,
     PostgresDatabaseConfig,
     MySQLDatabaseConfig,
     MsSQLDatabaseConfig,
@@ -190,4 +192,62 @@ def test_mongodb_config(database_config: MongoDBDatabaseConfig) -> bool:
             client.admin.command("ismaster")
             return True
     except Exception:
+        return False
+
+
+# 1. Map Types to Models
+MODEL_MAP = {
+    DB_CONN_TYPES.POSTGRES: PostgresDatabaseConfig,
+    DB_CONN_TYPES.MYSQL: MySQLDatabaseConfig,
+    DB_CONN_TYPES.MSSQL: MsSQLDatabaseConfig,
+    DB_CONN_TYPES.SQLITE: SQLiteDatabaseConfig,
+    DB_CONN_TYPES.MONGODB: MongoDBDatabaseConfig,
+}
+# 2. Map Types to Session Testers
+SESSION_MAP = {
+    DB_CONN_TYPES.POSTGRES: pg_session,
+    DB_CONN_TYPES.MYSQL: mysql_session,
+    DB_CONN_TYPES.MSSQL: mssql_session,
+    DB_CONN_TYPES.SQLITE: sqlite_session,
+    DB_CONN_TYPES.MONGODB: mongodb_session,
+}
+USER_DEFAULT_MAP = {
+    DB_CONN_TYPES.POSTGRES: "postgres",
+    DB_CONN_TYPES.MYSQL: "root",
+    DB_CONN_TYPES.MSSQL: "sa",
+    DB_CONN_TYPES.MONGODB: "admin",
+}
+PORT_DEFAULT_MAP = {
+    DB_CONN_TYPES.POSTGRES: 5432,
+    DB_CONN_TYPES.MYSQL: 3306,
+    DB_CONN_TYPES.MSSQL: 1433,
+    DB_CONN_TYPES.MONGODB: 27017,
+}
+SERVICE_DATABASE_MAP = {
+    DB_CONN_TYPES.POSTGRES: "postgres",
+    DB_CONN_TYPES.MYSQL: "mysql",
+    DB_CONN_TYPES.MSSQL: "master",
+    DB_CONN_TYPES.MONGODB: "admin",
+}
+
+
+def verify_connection(config: DatabaseConfig, conn_type: str) -> bool:
+    """Attempts to establish a connection using the defined session managers."""
+    session_manager = SESSION_MAP.get(conn_type)
+
+    if not session_manager:
+        typer.secho(
+            f"No session manager defined for {conn_type}", fg=typer.colors.YELLOW
+        )
+        return True  # Assume valid if we can't test it? Or False.
+
+    typer.echo(f"Testing connection to {conn_type}...")
+    try:
+        # We perform a no-op inside the context manager just to trigger the __enter__ logic
+        with session_manager(config):
+            pass
+        typer.secho("Connection Successful", fg=typer.colors.GREEN)
+        return True
+    except Exception as e:
+        typer.secho(f"Connection Failed, :{e}", fg=typer.colors.RED)
         return False

@@ -30,3 +30,4 @@ def list_database_connections():
 
     for idx, host in enumerate(hosts, start=1):
         echo(f"{idx}. {host.host}:{host.port} - {host.dbname} (User: {host.user})")
+

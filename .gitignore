@@ -12,3 +12,4 @@ wheels/
 *.spec
 .vscode/settings.json
 temp/
+.hosts/hosts.md
