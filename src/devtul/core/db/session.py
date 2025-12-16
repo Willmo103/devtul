@@ -1,5 +1,7 @@
 from contextlib import contextmanager
 
+import typer
+
 from devtul.core.constants import DB_CONN_TYPES
 from devtul.core.models import (DatabaseConfig, MongoDBDatabaseConfig,
                                 MsSQLDatabaseConfig, MySQLDatabaseConfig,

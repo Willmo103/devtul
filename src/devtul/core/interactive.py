@@ -1,16 +1,22 @@
-from typing import Type, TypeVar
-
 import typer
-from pydantic import BaseModel
 from rich.prompt import Prompt
 
-from devtul.core.constants import DB_CONN_TYPES
-from devtul.core.models import (MODEL_MAP, PORT_DEFAULT_MAP,
-                                SERVICE_DATABASE_MAP, USER_DEFAULT_MAP,
-                                DatabaseConfig, MongoDBDatabaseConfig,
-                                MsSQLDatabaseConfig, MySQLDatabaseConfig,
-                                PostgresDatabaseConfig, SQLiteDatabaseConfig,
-                                verify_connection)
+from devtul.core.db.session import (
+    DB_CONN_TYPES,
+    MODEL_MAP,
+    PORT_DEFAULT_MAP,
+    SERVICE_DATABASE_MAP,
+    USER_DEFAULT_MAP,
+    verify_connection,
+)
+from devtul.core.models import (
+    DatabaseConfig,
+    MongoDBDatabaseConfig,
+    MsSQLDatabaseConfig,
+    MySQLDatabaseConfig,
+    PostgresDatabaseConfig,
+    SQLiteDatabaseConfig,
+)
 
 
 def interactive_create_database_connection():
