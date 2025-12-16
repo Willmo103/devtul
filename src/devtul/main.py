@@ -19,7 +19,6 @@ app = typer.Typer(
 app.command(name="tree")(tree)
 app.command(name="md")(markdown)
 app.command(name="ls")(ls)
-app.command(name="meta")(git_meta)
 app.command(name="find")(find)
 app.command(name="find-folder")(find_folder)
 app.add_typer(empty, name="empty", help="Locate empty files and folders")
