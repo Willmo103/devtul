@@ -1,11 +1,12 @@
 import json
 from pathlib import Path
-from uuid import uuid4
-from pydantic import BaseModel
 from typing import Any, Dict, Optional
-from jinja2 import Template
+from uuid import uuid4
+
 import typer
 import yaml
+from jinja2 import Template
+from pydantic import BaseModel
 
 from devtul.core.config import EDITOR, app_root
 from devtul.core.constants import MD_XREF

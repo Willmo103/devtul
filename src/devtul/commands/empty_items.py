@@ -4,8 +4,7 @@ from pathlib import Path
 import typer
 from git import Optional
 
-from devtul.core.file_utils import get_all_files
-from devtul.core.file_utils import get_git_files
+from devtul.core.file_utils import get_all_files, get_git_files
 
 empty = typer.Typer(
     name="empty",

@@ -1,4 +1,5 @@
 from unittest.mock import patch
+
 from devtul.core.interactive import interactive_create_database_connection
 from devtul.core.models import PostgresDatabaseConfig
 

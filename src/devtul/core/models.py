@@ -1,9 +1,11 @@
 from datetime import datetime, timezone
 from pathlib import Path
+
+import yaml
 from git import Optional
 from pydantic import BaseModel, ConfigDict, Field, computed_field
+
 from devtul.core.constants import FileContentStatus
-import yaml
 
 
 class FileResult:

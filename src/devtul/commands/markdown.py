@@ -8,13 +8,11 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core import (
-    apply_filters,
-    format_git_metadata_table,
-    get_git_metadata,
-)
+from devtul.core import (apply_filters, format_git_metadata_table,
+                         get_git_metadata)
+from devtul.core.file_utils import (build_tree_structure, get_all_files,
+                                    get_git_files)
 from devtul.core.models import RepoMarkdownHeader
-from devtul.core.file_utils import build_tree_structure, get_all_files, get_git_files
 from devtul.core.utils import get_markdown_mapping, write_to_file
 
 

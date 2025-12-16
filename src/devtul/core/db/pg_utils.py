@@ -1,4 +1,5 @@
 from typing import Optional
+
 from devtul.core.db.session import pg_session
 from devtul.core.models import DatabaseConfig
 

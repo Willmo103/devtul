@@ -1,6 +1,8 @@
-import typer
 from pathlib import Path
 from typing import Optional
+
+import typer
+
 from devtul.core.database import database
 from devtul.core.models import UserTemplate
 from devtul.core.utils import edit_as_temp

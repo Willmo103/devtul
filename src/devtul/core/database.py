@@ -1,7 +1,10 @@
 from typing import Optional
+
 from sqlite_utils import Database
+
 from devtul.core.config import _app_data
-from devtul.core.models import DatabaseConfig, DatabaseConfig_DBModel, NetworkHost
+from devtul.core.models import (DatabaseConfig, DatabaseConfig_DBModel,
+                                NetworkHost)
 
 db_path = _app_data / "devtul_interface.db"
 database = Database(db_path)

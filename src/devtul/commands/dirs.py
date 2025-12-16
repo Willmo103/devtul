@@ -3,10 +3,8 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core.file_utils import (
-    find_all_dirs_containing_file,
-    find_all_dirs_containing_marker_folder,
-)
+from devtul.core.file_utils import (find_all_dirs_containing_file,
+                                    find_all_dirs_containing_marker_folder)
 
 
 def find_folder(

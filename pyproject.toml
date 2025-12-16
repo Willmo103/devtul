@@ -78,5 +78,9 @@ omit = ["tests/*", "src/devtul/__init__.py"]
 
 [dependency-groups]
 dev = [
+    "autopep8>=2.3.2",
+    "black>=25.12.0",
+    "flake8>=7.3.0",
+    "isort>=7.0.0",
     "pytest>=9.0.2",
 ]

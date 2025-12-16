@@ -1,7 +1,8 @@
 import typer
-from devtul.core.interactive import interactive_create_database_connection
-from devtul.core.database import add_host, get_hosts
 from typer import echo
+
+from devtul.core.database import add_host, get_hosts
+from devtul.core.interactive import interactive_create_database_connection
 
 db_cli = typer.Typer(name="db", help="Database related commands")
 
@@ -30,4 +31,3 @@ def list_database_connections():
 
     for idx, host in enumerate(hosts, start=1):
         echo(f"{idx}. {host.host}:{host.port} - {host.dbname} (User: {host.user})")
-

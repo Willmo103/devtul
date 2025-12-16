@@ -1,4 +1,3 @@
-import typer
 import fnmatch
 import os
 import shutil
@@ -7,9 +6,11 @@ from os import walk
 from pathlib import Path
 from typing import List, Optional
 
+import typer
+
 from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS, GitScanModes
 from devtul.core.filters import should_ignore_path
-from devtul.core.models import FileSearchMatch, FileResult, FileResultsModel
+from devtul.core.models import FileResult, FileResultsModel, FileSearchMatch
 
 
 def gather_all_paths(root: Path) -> List[Path]:

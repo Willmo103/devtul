@@ -1,13 +1,9 @@
 from contextlib import contextmanager
+
 from devtul.core.constants import DB_CONN_TYPES
-from devtul.core.models import (
-    DatabaseConfig,
-    PostgresDatabaseConfig,
-    MySQLDatabaseConfig,
-    MsSQLDatabaseConfig,
-    SQLiteDatabaseConfig,
-    MongoDBDatabaseConfig,
-)
+from devtul.core.models import (DatabaseConfig, MongoDBDatabaseConfig,
+                                MsSQLDatabaseConfig, MySQLDatabaseConfig,
+                                PostgresDatabaseConfig, SQLiteDatabaseConfig)
 
 
 @contextmanager

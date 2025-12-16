@@ -1,8 +1,8 @@
+import os
 from pathlib import Path
 from typing import Optional
-import ollama
-import os
 
+import ollama
 from pydantic import BaseModel, computed_field
 
 HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
