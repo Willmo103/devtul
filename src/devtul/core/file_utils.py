@@ -112,6 +112,21 @@ def filter_gathered_paths_by_patterns(
     return filtered_paths
 
 
+def filter_gathered_paths_dy_default_ignores(
+    paths: List[Path],
+) -> List[Path]:
+    """
+    Filter gathered paths by ignoring those that match default ignore parts and patterns.
+    Args:
+        paths: List of gathered file and directory paths
+    Returns:
+        Filtered list of paths
+    """
+    paths = filter_gathered_paths_by_path_parts(paths, IGNORE_PARTS)
+    paths = filter_gathered_paths_by_patterns(paths, IGNORE_EXTENSIONS)
+    return paths
+
+
 def filter_paths_for_empty_folders(
     paths: List[Path],
 ) -> tuple[List[Path], List[Path]]:

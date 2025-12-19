@@ -8,6 +8,29 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field
 from devtul.core.constants import FileContentStatus
 
 
+class Paths(BaseModel):
+    matched: list[Path] = Field([], description="List of paths that matched the filter")
+
+    @computed_field
+    def total_paths(self) -> int:
+        return len(self.matched) + len(self.ignored)
+
+    @computed_field
+    def matched_count(self) -> int:
+        return len(self.matched)
+
+
+class FilteredPaths(BaseModel):
+    matched: list[Path] = Field([], description="List of paths that matched the filter")
+    ignored: list[Path] = Field(
+        [], description="List of paths that were ignored by the filter"
+    )
+
+    @computed_field
+    def ignored_count(self) -> int:
+        return len(self.ignored)
+
+
 class FileResult:
     full_path: Path
     relative_path: Path
@@ -124,14 +147,6 @@ class FileResultModel(BaseModel):
     )
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
-
-class FileContentModel(BaseModel):
-    """Schema for file content retrieval results."""
-
-    id: Optional[int] = Field(None, description="Database ID")
-    file_result_id: int = Field(..., description="ID of the associated FileResult")
-    content: str = Field(..., description="Content of the file")
 
 
 class MarkedDirectoryResult(BaseModel):
