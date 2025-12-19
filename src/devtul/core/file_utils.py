@@ -24,8 +24,13 @@ def gather_all_paths(root: Path) -> List[Path]:
     return all_paths
 
 
-def gather_all_git_tracked_paths(repo_path: Path) -> List[Path]:
+def try_gather_all_git_tracked_paths(repo_path: Path) -> List[Path]:
     """Gather all git-tracked file and directory paths under the repository path."""
+    if not repo_path.is_dir() or not repo_path.exists():
+        typer.echo(f"Error: {repo_path} is not a valid directory", err=True)
+        return []
+    elif not any(repo_path.rglob(".git")):
+        return gather_all_paths(repo_path)
     tracked_paths = []
     (shell := os.name == "nt")
     try:
@@ -66,7 +71,7 @@ def gather_all_git_tracked_paths(repo_path: Path) -> List[Path]:
                     )
                     typer.echo(f"Added {repo_path} to safe.directory list.")
                     # Retry gathering git tracked paths
-                    return gather_all_git_tracked_paths(repo_path)
+                    return try_gather_all_git_tracked_paths(repo_path)
                 except subprocess.CalledProcessError as e2:
                     typer.echo(f"Error adding to safe.directory: {e2.stderr}", err=True)
                     return tracked_paths

@@ -7,46 +7,6 @@ from pathlib import Path
 from typing import List, Optional
 
 
-def process_paths_for_subdir(
-    files: List[str], sub_dir: Optional[str]
-) -> tuple[List[str], List[str]]:
-    """
-    Filters files by a subdirectory and returns both original and adjusted paths.
-
-    This function is key to making the --sub-dir feature work. It takes all the
-    files from git, finds the ones inside the target sub-directory, and then
-    creates a "virtual" view of them by stripping the sub-directory prefix.
-    We need both the original paths (for reading files) and the adjusted paths
-    (for display in the tree or list).
-
-    Args:
-        files: List of file paths relative to the repo root.
-        sub_dir: The subdirectory to filter by, e.g., "src/app".
-
-    Returns:
-        A tuple containing:
-        - original_paths: Filtered list of original paths (e.g., ['src/app/main.py']).
-        - adjusted_paths: Paths adjusted to be relative to the sub_dir (e.g., ['main.py']).
-    """
-    if not sub_dir:
-        return files, files
-
-    # Normalize the path to use forward slashes and remove any leading/trailing ones.
-    normalized_dir = sub_dir.replace("\\", "/").strip("/")
-    if not normalized_dir:
-        return files, files
-
-    prefix = normalized_dir + "/"
-
-    # Find all files that start with the subdirectory path.
-    original_paths = [f for f in files if f.startswith(prefix)]
-
-    # Create new paths with the subdirectory prefix removed.
-    adjusted_paths = [f.removeprefix(prefix) for f in original_paths]
-
-    return original_paths, adjusted_paths
-
-
 def apply_filters(
     files: List[str], match_patterns: List[str], exclude_patterns: List[str]
 ) -> List[str]:
