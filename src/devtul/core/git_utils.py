@@ -9,8 +9,10 @@ import git
 from devtul.core.models import GitCommit, GitMetadata
 
 
-def get_git_metadata(repo_path: Path) -> GitMetadata:
+def get_git_metadata(repo_path: Path) -> GitMetadata | None:
     """Extract git metadata from repository."""
+    if not (repo_path / ".git").exists() or not repo_path.is_dir():
+        return None
     try:
         repo = git.Repo(repo_path)
 

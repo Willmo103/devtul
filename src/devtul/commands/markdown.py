@@ -97,7 +97,7 @@ def markdown(
 
     markdown_content.append(frontmatter.frontmatter())
 
-    if GIT_MODE:
+    if GIT_MODE and git_metadata:
         # Repository title
         repo_name = path.name.upper()
         markdown_content.append(f"# {repo_name}")

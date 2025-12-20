@@ -38,6 +38,7 @@ class FileResult:
     content_status: FileContentStatus
     created_at: Optional[datetime]
     modified_at: Optional[datetime]
+    content: Optional[str] = None
 
     def __init__(
         self,
@@ -45,6 +46,7 @@ class FileResult:
         input_path: Path,
         created_at: Optional[datetime] = None,
         modified_at: Optional[datetime] = None,
+        content: Optional[str] = None,
     ):
         self.full_path = file_path.resolve()
         self.relative_path = file_path.resolve().relative_to(input_path.resolve())
@@ -393,15 +395,4 @@ class ScanningRoot(BaseModel):
 class FileResultsModel(BaseModel):
     root_path: str = Field(..., description="Root path for the scan")
     total_files: int = Field(..., description="Total number of files scanned")
-    time_scanned: float = Field(..., description="Time taken to scan in seconds")
-    git_metadata: Optional[GitMetadata] = Field(
-        None, description="Git metadata if the root is a git repository"
-    )
-    tracked_files: list[FileResult] = Field(
-        ..., description="List of tracked file results"
-    )
-    ignored_files: list[str] = Field([], description="List of ignored file paths")
-    empty_files: list[str] = Field([], description="List of empty file paths")
-    empty_dirs: list[str] = Field([], description="List of empty directory paths")
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    scanned_at: str = Field(..., description="Timestamp of when the scan was performed")

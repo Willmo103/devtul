@@ -77,7 +77,16 @@ def locate_empty_files(
 def find_empty_folders(
     path: Path = typer.Argument(
         Path().cwd().resolve(), help="Path to search for empty folders"
-    )
+    ),
+    json: bool = typer.Option(
+        False, "--json", help="Output as JSON instead of plain text"
+    ),
+    yaml: bool = typer.Option(
+        False, "--yaml", help="Output as YAML instead of plain text"
+    ),
+    csv: bool = typer.Option(
+        False, "--csv", help="Output as CSV instead of plain text"
+    ),
 ):
     """
     Locate empty folders in the specified path.
