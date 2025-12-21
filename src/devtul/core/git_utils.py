@@ -2,11 +2,21 @@
 Git-related utilities for devtul.
 """
 
+import os
 from pathlib import Path
 
 import git
 
-from devtul.core.models import GitCommit, GitMetadata
+from devtul.git.models import GitMetadata
+from devtul.git.models import GitCommit
+
+
+def has_nested_git_repo(path: Path) -> bool:
+    """Check if the given path contains a nested git repository."""
+    for root, dirs, _ in os.walk(path):
+        if ".git" in dirs and Path(root) != path:
+            return True
+    return False
 
 
 def get_git_metadata(repo_path: Path) -> GitMetadata | None:
