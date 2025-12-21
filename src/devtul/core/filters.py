@@ -7,37 +7,6 @@ from pathlib import Path
 from typing import List, Optional
 
 
-def apply_filters(
-    files: List[str], match_patterns: List[str], exclude_patterns: List[str]
-) -> List[str]:
-    """Apply match and exclude patterns to filter files using set intersection/difference.
-    Args:
-        files: List of file paths to filter
-        match_patterns: List[str], exclude_patterns: List[str]
-    Returns:
-        List of filtered file paths
-    """
-    file_set = set(files)
-
-    # Apply match patterns (if any) - only include files that match at least one pattern
-    if match_patterns:
-        matched_files = set()
-        for pattern in match_patterns:
-            pattern_matches = {f for f in file_set if fnmatch.fnmatch(f, pattern)}
-            matched_files.update(pattern_matches)
-        file_set = file_set.intersection(matched_files)
-
-    # Apply exclude patterns - remove files that match any exclude pattern
-    if exclude_patterns:
-        excluded_files = set()
-        for pattern in exclude_patterns:
-            pattern_matches = {f for f in file_set if fnmatch.fnmatch(f, pattern)}
-            excluded_files.update(pattern_matches)
-        file_set = file_set.difference(excluded_files)
-
-    return sorted(list(file_set))
-
-
 def should_ignore_path(
     path: Path, ignore_parts: List[str], ignore_patterns: List[str]
 ) -> bool:

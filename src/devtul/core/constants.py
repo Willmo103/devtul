@@ -387,43 +387,43 @@ MD_XREF = {
 class ImageFormats(str, enum.Enum):
     """Enumeration of supported image formats."""
 
-    PNG = "png"  # Portable Network Graphics
-    JPEG = "jpeg"  # Joint Photographic Experts Group
-    JPG = "jpg"  # Common abbreviation for JPEG
-    BMP = "bmp"  # Bitmap Image File
-    SVG = "svg"  # Scalable Vector Graphics
-    GIF = "gif"  # Graphics Interchange Format
-    WEBP = "webp"  # Web Picture format
-    TIFF = "tiff"  # Tagged Image File Format
-    HEIC = "heic"  # High Efficiency Image Coding
-    NEF = "nef"  # Nikon Electronic Format
+    PNG = ".png"  # Portable Network Graphics
+    JPEG = ".jpeg"  # Joint Photographic Experts Group
+    JPG = ".jpg"  # Common abbreviation for JPEG
+    BMP = ".bmp"  # Bitmap Image File
+    SVG = ".svg"  # Scalable Vector Graphics
+    GIF = ".gif"  # Graphics Interchange Format
+    WEBP = ".webp"  # Web Picture format
+    TIFF = ".tiff"  # Tagged Image File Format
+    HEIC = ".heic"  # High Efficiency Image Coding
+    NEF = ".nef"  # Nikon Electronic Format
 
 
 class DataFormats(str, enum.Enum):
     """Enumeration of supported data formats."""
 
-    CSV = "csv"  # Comma-Separated Values
-    JSON = "json"  # JavaScript Object Notation
-    XML = "xml"  # eXtensible Markup Language
-    YAML = "yaml"  # YAML Ain't Markup Language
-    XLSX = "xlsx"  # Microsoft Excel Open XML Spreadsheet
-    PARQUET = "parquet"  # Apache Parquet
-    AVRO = "avro"  # Apache Avro
-    ORC = "orc"  # Optimized Row Columnar
+    CSV = ".csv"  # Comma-Separated Values
+    JSON = ".json"  # JavaScript Object Notation
+    XML = ".xml"  # eXtensible Markup Language
+    YAML = ".yaml"  # YAML Ain't Markup Language
+    XLSX = ".xlsx"  # Microsoft Excel Open XML Spreadsheet
+    PARQUET = ".parquet"  # Apache Parquet
+    AVRO = ".avro"  # Apache Avro
+    ORC = ".orc"  # Optimized Row Columnar
 
 
 class VideoFormats(str, enum.Enum):
     """Enumeration of supported video formats."""
 
-    MP4 = "mp4"  # MPEG-4 Part 14
-    AVI = "avi"  # Audio Video Interleave
-    MKV = "mkv"  # Matroska Video File
-    MOV = "mov"  # Apple QuickTime Movie
-    WMV = "wmv"  # Windows Media Video
-    FLV = "flv"  # Flash Video
-    WEBM = "webm"  # WebM Video File
-    MPG = "mpg"  # MPEG Video File
-    M4V = "m4v"  # iTunes Video File
+    MP4 = ".mp4"  # MPEG-4 Part 14
+    AVI = ".avi"  # Audio Video Interleave
+    MKV = ".mkv"  # Matroska Video File
+    MOV = ".mov"  # Apple QuickTime Movie
+    WMV = ".wmv"  # Windows Media Video
+    FLV = ".flv"  # Flash Video
+    WEBM = ".webm"  # WebM Video File
+    MPG = ".mpg"  # MPEG Video File
+    M4V = ".m4v"  # iTunes Video File
 
 
 class OutputFormats(str, enum.Enum):
