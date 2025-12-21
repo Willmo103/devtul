@@ -567,3 +567,17 @@ def apply_filters(
         file_set = file_set.difference(excluded_files)
 
     return sorted(list(file_set))
+
+
+def path_has_default_ignore_path_part(path: Path) -> bool:
+    """
+    Check if a path contains any default ignore parts.
+
+    Args:
+        path: Path to check
+    Returns:
+        True if the path contains any default ignore parts, False otherwise
+    """
+    from devtul.core.constants import IGNORE_PARTS
+
+    return should_ignore_path(path, ignore_parts=IGNORE_PARTS, ignore_patterns=[])

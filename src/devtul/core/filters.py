@@ -8,20 +8,6 @@ from typing import Optional
 from devtul.core.file_utils import should_ignore_path
 
 
-def path_has_default_ignore_path_part(path: Path) -> bool:
-    """
-    Check if a path contains any default ignore parts.
-
-    Args:
-        path: Path to check
-    Returns:
-        True if the path contains any default ignore parts, False otherwise
-    """
-    from devtul.core.constants import IGNORE_PARTS
-
-    return should_ignore_path(path, ignore_parts=IGNORE_PARTS, ignore_patterns=[])
-
-
 def path_has_default_ignore_pattern(path: Path) -> bool:
     """
     Check if a path matches any default ignore patterns.
