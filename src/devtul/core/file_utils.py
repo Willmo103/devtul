@@ -9,7 +9,6 @@ from typing import List, Optional
 import typer
 
 from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS, GitScanModes
-from devtul.core.filters import should_ignore_path
 from devtul.core.models import FileResult, FileResultsModel, FileSearchMatch
 
 
@@ -205,6 +204,35 @@ def prompt_on_git_folder_detection(path: Path) -> str:
         return GitScanModes.GIT_TRACKED
     elif choice == "2":
         return GitScanModes.ALL_FILES
+
+
+def should_ignore_path(
+    path: Path, ignore_parts: List[str], ignore_patterns: List[str]
+) -> bool:
+    """
+    Check if a path should be ignored based on ignore patterns.
+
+    Args:
+        path: Path to check
+        ignore_parts: List of strings that should not appear anywhere in the path
+        ignore_patterns: List of glob patterns to match against the path
+
+    Returns:
+        True if the path should be ignored, False otherwise
+    """
+    path_str = str(path)
+
+    # Check ignore parts (simple substring match)
+    for part in ignore_parts:
+        if part in path_str:
+            return True
+
+    # Check ignore patterns (glob match)
+    for pattern in ignore_patterns:
+        if fnmatch.fnmatch(path_str, pattern) or fnmatch.fnmatch(path.name, pattern):
+            return True
+
+    return False
 
 
 def get_all_files(

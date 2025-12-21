@@ -10,7 +10,7 @@ from .file_utils import (
     get_git_files,
     search_in_file,
 )
-from .filters import should_ignore_path
+from .file_utils import should_ignore_path
 from .git_utils import format_git_metadata_table, get_git_metadata
 from .utils import write_to_file
 

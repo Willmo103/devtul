@@ -2,38 +2,10 @@
 File filtering utilities for devtul.
 """
 
-import fnmatch
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
-
-def should_ignore_path(
-    path: Path, ignore_parts: List[str], ignore_patterns: List[str]
-) -> bool:
-    """
-    Check if a path should be ignored based on ignore patterns.
-
-    Args:
-        path: Path to check
-        ignore_parts: List of strings that should not appear anywhere in the path
-        ignore_patterns: List of glob patterns to match against the path
-
-    Returns:
-        True if the path should be ignored, False otherwise
-    """
-    path_str = str(path)
-
-    # Check ignore parts (simple substring match)
-    for part in ignore_parts:
-        if part in path_str:
-            return True
-
-    # Check ignore patterns (glob match)
-    for pattern in ignore_patterns:
-        if fnmatch.fnmatch(path_str, pattern) or fnmatch.fnmatch(path.name, pattern):
-            return True
-
-    return False
+from devtul.core.file_utils import should_ignore_path
 
 
 def path_has_default_ignore_path_part(path: Path) -> bool:
