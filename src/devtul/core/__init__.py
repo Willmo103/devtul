@@ -4,10 +4,7 @@ Core utilities for devtul.
 
 from .constants import IGNORE_EXTENSIONS, IGNORE_PARTS
 from .file_utils import (
-    apply_filters,
     build_tree_structure,
-    get_all_files,
-    get_git_files,
     search_in_file,
 )
 from .file_utils import should_ignore_path
@@ -18,11 +15,8 @@ from .reporter import app as reporter_app
 __all__ = [
     "IGNORE_PARTS",
     "IGNORE_EXTENSIONS",
-    "apply_filters",
     "build_tree_structure",
     "format_git_metadata_table",
-    "get_all_files",
-    "get_git_files",
     "get_git_metadata",
     "search_in_file",
     "should_ignore_path",

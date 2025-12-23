@@ -159,3 +159,6 @@ def make_file_from_template(
     except Exception as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(1)
+
+def entry():
+    app()

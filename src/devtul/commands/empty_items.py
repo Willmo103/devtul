@@ -4,7 +4,7 @@ from pathlib import Path
 import typer
 from git import Optional
 
-from devtul.core.file_utils import get_all_files, get_git_files
+from devtul.core.file_utils import gather_all_paths, try_gather_all_git_tracked_paths
 
 empty = typer.Typer(
     name="empty",
@@ -40,13 +40,50 @@ def locate_empty_files(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    if git and (path / ".git").exists():
-        empty_items = get_git_files(path, only_empty=True)
+    # 1. Gather Paths
+    # Logic for git default? Original code: `if git and (path / ".git").exists()...`
+    # Here git is Optional[bool].
+    use_git = False
+    if git is True:
+        use_git = True
+    elif git is None:
+        if (path / ".git").exists():
+            use_git = True
+
+    if use_git:
+        from devtul.core.file_utils import try_gather_all_git_tracked_paths
+        paths = try_gather_all_git_tracked_paths(path)
     else:
-        empty_items = get_all_files(
-            path,
-            only_empty=True,
-        )
+        from devtul.core.file_utils import gather_all_paths
+        paths = gather_all_paths(path)
+
+    # 2. Filter via FileResult pipeline - Only Empty
+    from devtul.core.models import FileResult
+    from devtul.core.constants import FileContentStatus
+
+    empty_items = []
+
+    # We can use filter_paths_for_empty_files from file_utils if we want, or manually check
+    # But since we are mandated to use FileResult...
+
+    # Wait, creating FileResult for ALL files just to check size might be slow if we have thousands.
+    # But that's the requested pattern.
+    # Actually, file_utils has `filter_paths_for_empty_files(paths) -> (non_empty, empty)`.
+    # I should use that for efficiency and then wrap results?
+    # Or just use FileResult is fine.
+
+    for p in paths:
+        if p.is_file():
+             # Optimization: check stat size before full FileResult?
+             if p.stat().st_size == 0:
+                 # It's empty
+                 # We need string path for output
+                 # get_git_files returned relative strings. FileResult has relative_path.
+                 # Let's use FileResult for consistency.
+                 res = FileResult(p, path)
+                 if res.content_status == FileContentStatus.EMPTY:
+                     empty_items.append(res.relative_path.as_posix())
+
     if not empty_items:
         print("No empty items found.")
         return
@@ -111,3 +148,6 @@ def find_empty_folders(
     output = "\n".join(sorted(empty_folders))
 
     print(output)
+
+def entry():
+    empty()
