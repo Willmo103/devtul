@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevTul File Timeline</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.0/vis-timeline-graph2d.min.css"
+        rel="stylesheet" />
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #252526;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1,
+        h2 {
+            margin-top: 0;
+            color: #4ec9b0;
+        }
+
+        /* Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        /* Timeline Styles */
+        #visualization {
+            height: 400px;
+            border: 1px solid #333;
+        }
+
+        .vis-item {
+            border-color: #4ec9b0;
+            background-color: rgba(78, 201, 176, 0.2);
+            color: #fff;
+        }
+
+        .vis-item.vis-selected {
+            border-color: #ce9178;
+            background-color: rgba(206, 145, 120, 0.3);
+        }
+
+        /* File Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            color: #569cd6;
+            cursor: pointer;
+        }
+
+        tr:hover {
+            background: #2a2d2e;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            background: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>DevTul Report</h1>
+        <div>Generated: </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Folder Sizes (Top 10)</h2>
+            <canvas id="sizeChart"></canvas>
+        </div>
+
+        <div class="card">
+            <h2>Overview</h2>
+            <div id="stats"></div>
+        </div>
+
+        <div class="card full-width">
+            <h2>Timeline Overlay</h2>
+            <p style="color: #888; font-size: 0.9em;">Scroll to zoom. Click items to filter file list.</p>
+            <div id="visualization"></div>
+        </div>
+
+        <div class="card full-width">
+            <h2>File Index</h2>
+            <input type="text" id="search" placeholder="Filter files..."
+                style="width: 100%; padding: 8px; margin-bottom: 10px; background: #333; border: 1px solid #444; color: #fff;">
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table id="fileTable">
+                    <thead>
+                        <tr>
+                            <th>Path</th>
+                            <th>Size</th>
+                            <th>Extension</th>
+                            <th>Last Event</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.0/vis-timeline-graph2d.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // 1. Load Data injected by Python
+        const rawData = ;
+        const files = rawData.files;
+
+        // 2. Prepare Stats & Chart Data
+        const folderSizes = {};
+        let totalSize = 0;
+
+        files.forEach(f => {
+            totalSize += f.size;
+            // Group by top-level folder
+            const root = f.path.split('/')[0] || 'root';
+            folderSizes[root] = (folderSizes[root] || 0) + f.size;
+        });
+
+        // Update Overview
+        document.getElementById('stats').innerHTML = `
+            <p><strong>Total Files:</strong> ${files.length}</p>
+            <p><strong>Total Size:</strong> ${(totalSize / 1024 / 1024).toFixed(2)} MB</p>
+            <p><strong>Scan Mode:</strong> ${rawData.mode}</p>
+        `;
+
+        // Render Chart
+        const sortedFolders = Object.entries(folderSizes)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10);
+
+        new Chart(document.getElementById('sizeChart'), {
+            type: 'bar',
+            data: {
+                labels: sortedFolders.map(x => x[0]),
+                datasets: [{
+                    label: 'Size (Bytes)',
+                    data: sortedFolders.map(x => x[1]),
+                    backgroundColor: '#4ec9b0'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, grid: { color: '#333' } }, x: { grid: { display: false } } }
+            }
+        });
+
+        // 3. Prepare Timeline Data
+        const items = new vis.DataSet();
+        let itemId = 1;
+
+        files.forEach(file => {
+            file.history.forEach(event => {
+                items.add({
+                    id: itemId++,
+                    content: file.path,
+                    start: event.date,
+                    group: 1, // Put all on one line or categorize if preferred
+                    title: `${event.message} (${event.author})` // Tooltip
+                });
+            });
+        });
+
+        const container = document.getElementById('visualization');
+        const options = {
+            height: '100%',
+            start: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 30), // Last 30 days default
+            end: new Date(),
+            stack: true, // Prevent overlap
+            verticalScroll: true,
+            zoomKey: 'ctrlKey'
+        };
+        const timeline = new vis.Timeline(container, items, options);
+
+        // 4. Render Table
+        const tableBody = document.querySelector('#fileTable tbody');
+
+        function renderTable(fileList) {
+            tableBody.innerHTML = fileList.map(f => `
+                <tr>
+                    <td>${f.path}</td>
+                    <td>${(f.size / 1024).toFixed(1)} KB</td>
+                    <td><span class="badge">${f.extension}</span></td>
+                    <td>${f.mtime.split('T')[0]}</td>
+                </tr>
+            `).join('');
+        }
+        renderTable(files);
+
+        // Filter Logic
+        document.getElementById('search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = files.filter(f => f.path.toLowerCase().includes(term));
+            renderTable(filtered);
+        });
+
+    </script>
+</body>
+
+</html>

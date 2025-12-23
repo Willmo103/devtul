@@ -39,6 +39,7 @@ class FileResult:
     created_at: Optional[datetime]
     modified_at: Optional[datetime]
     content: Optional[str] = None
+    events: list[dict] = []
 
     def __init__(
         self,
@@ -101,35 +102,31 @@ class FileResult:
             "modified_at": (
                 self.modified_at.isoformat() if self.modified_at else "Unknown"
             ),
+            "events": self.events,
         }
 
     def __str__(self):
         return str(self.__dict__())
 
     def __repr__(self):
-        return f"FileResult(full_path={self.full_path}, relative_path={self.relative_path}, size={self.size}, content_state={self.content_status}, created_at={self.created_at}, modified_at={self.modified_at})"
+        return f"FileResult(full_path={self.full_path}, relative_path={self.relative_path}, size={self.size}, content_state={self.content_status}, created_at={self.created_at}, modified_at={self.modified_at}, events={self.events})"
 
     def to_yaml(self):
         return yaml.dump(self.__dict__())
 
-    def to_model(self) -> "FileResultModel":
-        # Placeholder for FileResultModel, assumed to be a Pydantic model
-        class FileResultModel(BaseModel):
-            full_path: str
-            relative_path: str
-            size: int
-            content_state: str
-            created_at: Optional[str]
-            modified_at: Optional[str]
+    def to_dict(self) -> dict:
+        return {
+            "full_path": self.full_path.as_posix(),
+            "relative_path": self.relative_path.as_posix(),
+            "size": self.size,
+            "content_state": self.content_status.value,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "modified_at": (self.modified_at.isoformat() if self.modified_at else None),
+            "events": [event for event in self.events],
+        }
 
-        return FileResultModel(
-            full_path=self.full_path.as_posix(),
-            relative_path=self.relative_path.as_posix(),
-            size=self.size,
-            content_state=self.content_status.value,
-            created_at=self.created_at.isoformat() if self.created_at else None,
-            modified_at=self.modified_at.isoformat() if self.modified_at else None,
-        )
+    def add_event(self, event: dict):
+        self.events.append(event)
 
 
 class FileResultModel(BaseModel):

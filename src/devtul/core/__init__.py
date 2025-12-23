@@ -11,8 +11,9 @@ from .file_utils import (
     search_in_file,
 )
 from .file_utils import should_ignore_path
-from .git_utils import format_git_metadata_table, get_git_metadata
+from ..git.utils import format_git_metadata_table, get_git_metadata
 from .utils import write_to_file
+from .reporter import app as reporter_app
 
 __all__ = [
     "IGNORE_PARTS",
@@ -26,4 +27,5 @@ __all__ = [
     "search_in_file",
     "should_ignore_path",
     "write_to_file",
+    "reporter_app",
 ]

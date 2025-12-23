@@ -4,6 +4,7 @@ Git-related utilities for devtul.
 
 import os
 from pathlib import Path
+from typing import Dict, List
 
 import git
 
@@ -134,3 +135,24 @@ def format_git_metadata_table(metadata: GitMetadata) -> str:
         )
 
     return "\n".join(table_lines)
+
+
+def get_file_git_history(repo: git.Repo, file_path: Path) -> List[Dict]:
+    """Extracts commit history for a specific file."""
+    history = []
+    try:
+        # Get last 10 commits for this specific file
+        commits = list(repo.iter_commits(paths=str(file_path), max_count=10))
+        for commit in commits:
+            history.append(
+                {
+                    "type": "commit",
+                    "date": commit.committed_datetime.isoformat(),
+                    "message": commit.message.strip(),
+                    "author": commit.author.name,
+                    "hash": commit.hexsha[:7],
+                }
+            )
+    except Exception:
+        pass
+    return history
