@@ -8,8 +8,7 @@ from typing import Dict, List
 
 import git
 
-from devtul.git.models import GitMetadata
-from devtul.git.models import GitCommit
+from devtul.git.models import GitCommit, GitMetadata
 
 
 def has_nested_git_repo(path: Path) -> bool:

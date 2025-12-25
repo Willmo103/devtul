@@ -15,6 +15,7 @@ from .commands import (
     markdown,
     new_cli,
     tree,
+    copy,
 )
 from .core import reporter_app
 
@@ -50,6 +51,7 @@ app.add_typer(
     help="Generate reports from git repositories",
     no_args_is_help=True,
 )
+app.command(name="cp", help="Copy files from one location to another")(copy)
 
 
 def main():

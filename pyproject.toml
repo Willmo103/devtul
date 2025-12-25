@@ -68,6 +68,13 @@ package-dir = "src"
 
 [project.scripts]
 dt = "devtul.main:main"
+dt-ls = "devtul.commands.list_files:entry"
+dt-tree = "devtul.commands.tree:entry"
+dt-find = "devtul.commands.find:entry"
+dt-md = "devtul.commands.markdown:entry"
+dt-dirs = "devtul.commands.dirs:entry"
+dt-empty = "devtul.commands.empty_items:entry"
+dt-new = "devtul.commands.new:entry"
 
 
 [tool.pytest.coverage.run]

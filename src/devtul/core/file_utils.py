@@ -1,6 +1,5 @@
 import fnmatch
 import os
-import shutil
 import subprocess
 from os import walk
 from pathlib import Path
@@ -9,7 +8,7 @@ from typing import List, Optional
 import typer
 
 from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS, GitScanModes
-from devtul.core.models import FileResult, FileResultsModel, FileSearchMatch
+from devtul.core.models import FileSearchMatch
 
 
 def gather_all_paths(root: Path) -> List[Path]:
@@ -116,7 +115,7 @@ def filter_gathered_paths_by_patterns(
     return filtered_paths
 
 
-def filter_gathered_paths_dy_default_ignores(
+def filter_gathered_paths_by_default_ignores(
     paths: List[Path],
 ) -> List[Path]:
     """
@@ -233,59 +232,6 @@ def should_ignore_path(
             return True
 
     return False
-
-
-def get_all_files(
-    path: Path,
-    ignore_parts: Optional[List[str]] = None,
-    ignore_patterns: Optional[List[str]] = None,
-    include_empty: bool = False,
-    only_empty: bool = False,
-    override_ignore: bool = False,
-) -> List[str]:
-    """
-    Get all files in a directory recursively, filtering by ignore patterns.
-
-    Args:
-        path: Root directory to search
-        ignore_parts: List of strings that should not appear anywhere in the path
-        ignore_patterns: List[str] = None: List of glob patterns to match against the path
-        include_empty: Whether to include empty files
-        subdirs: Optional list of subdirectories to limit the search to
-
-    Returns:
-        List of relative file paths (strings)
-    """
-    if override_ignore:
-        return sorted(
-            [
-                str(p.relative_to(path))
-                for p in path.rglob("*", recurse_symlinks=False)
-                if p.is_file() and (include_empty or p.stat().st_size > 0)
-            ]
-        )
-    all_files = []
-    if ignore_parts is None:
-        ignore_parts = IGNORE_PARTS
-    if ignore_patterns is None:
-        ignore_patterns = IGNORE_EXTENSIONS
-
-    for path in path.rglob("*", recurse_symlinks=False):
-        if path.is_file() and (file_size := path.stat().st_size) is not None:
-            if should_ignore_path(
-                path, ignore_parts=ignore_parts, ignore_patterns=ignore_patterns
-            ):
-                continue
-            if file_size == 0:
-                if only_empty:
-                    all_files.append(str(path.relative_to(path.parent.parent)))
-                elif not include_empty:
-                    continue
-                all_files.append(str(path.relative_to(path.parent.parent)))
-            else:
-                all_files.append(str(path.relative_to(path.parent.parent)))
-
-    return sorted(all_files)
 
 
 def find_all_dirs_containing_marker_folder(
@@ -473,102 +419,6 @@ def search_in_file(file_path: Path, search_term: str) -> List[FileSearchMatch]:
     return matches
 
 
-def get_git_files(
-    repo_path: Path, include_empty: bool = False, only_empty: bool = False
-) -> List[str]:
-    """
-    Get list of files tracked by git in the repository, optionally filtering empty files.
-    Args:
-        repo_path: Path to the git repository
-        include_empty: Whether to include empty files
-        only_empty: Whether to include only empty files
-    Returns:
-        List of git tracked file paths (strings)
-    """
-    (shell := os.name == "nt")
-    if not repo_path.is_dir():
-        typer.echo(f"Error: {repo_path} is not a valid directory", err=True)
-        raise typer.Exit(1)
-    if not (repo_path / ".git").exists():
-        typer.echo(f"Error: {repo_path} is not a git repository", err=True)
-        raise typer.Exit(1)
-    if not shutil.which("git"):
-        typer.echo("Error: git is not installed or not found in PATH", err=True)
-        raise typer.Exit(1)
-    if only_empty:
-        include_empty = True
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(repo_path), "ls-files"],
-            capture_output=True,
-            text=True,
-            check=True,
-            shell=shell,
-        )
-        files = [f.strip() for f in result.stdout.splitlines() if f.strip()]
-        for f in files:
-            if any(ign in f for ign in IGNORE_PARTS):
-                files.remove(f)
-                continue
-            if any(f.endswith(ext) for ext in IGNORE_EXTENSIONS):
-                files.remove(f)
-                continue
-
-        if not include_empty or only_empty:
-            if only_empty:
-                # Get only empty files
-                empty_files = []
-                for f in files:
-                    file_path = repo_path / f
-                    if file_path.is_file() and file_path.stat().st_size == 0:
-                        empty_files.append(f)
-                return empty_files
-            else:
-                # Exclude empty files
-                non_empty_files = []
-                for f in files:
-                    file_path = repo_path / f
-                    if file_path.is_file() and file_path.stat().st_size > 0:
-                        non_empty_files.append(f)
-                return non_empty_files
-        return files
-    except subprocess.CalledProcessError as e:
-        typer.echo(f"Error: Unable to get git files from {repo_path}", err=True)
-        typer.echo(f"Git error: {e.stderr}", err=True)
-        raise typer.Exit(1)
-
-
-def apply_filters(
-    files: List[str], match_patterns: List[str], exclude_patterns: List[str]
-) -> List[str]:
-    """Apply match and exclude patterns to filter files using set intersection/difference.
-    Args:
-        files: List of file paths to filter
-        match_patterns: List[str], exclude_patterns: List[str]
-    Returns:
-        List of filtered file paths
-    """
-    file_set = set(files)
-
-    # Apply match patterns (if any) - only include files that match at least one pattern
-    if match_patterns:
-        matched_files = set()
-        for pattern in match_patterns:
-            pattern_matches = {f for f in file_set if fnmatch.fnmatch(f, pattern)}
-            matched_files.update(pattern_matches)
-        file_set = file_set.intersection(matched_files)
-
-    # Apply exclude patterns - remove files that match any exclude pattern
-    if exclude_patterns:
-        excluded_files = set()
-        for pattern in exclude_patterns:
-            pattern_matches = {f for f in file_set if fnmatch.fnmatch(f, pattern)}
-            excluded_files.update(pattern_matches)
-        file_set = file_set.difference(excluded_files)
-
-    return sorted(list(file_set))
-
-
 def path_has_default_ignore_path_part(path: Path) -> bool:
     """
     Check if a path contains any default ignore parts.
@@ -609,3 +459,46 @@ def extension_is_markdown_formattable(file_path: Path) -> bool:
     from devtul.core.constants import MARKDOWN_EXTENSIONS
 
     return file_path.suffix.lower() in MARKDOWN_EXTENSIONS
+
+
+def copy_files(
+    source_path: Path,
+    dest: Path,
+    git: bool = True,
+    zip: bool = False,
+):
+    """
+    Copy files from the specified path to a destination ignoreing all default ignore patterns.
+    Examples:
+        copy ./my-repo --dest ./backup
+        copy ./my-repo --dest ./backup --zip
+    """
+    if git and (source_path / ".git").exists():
+        paths = try_gather_all_git_tracked_paths(source_path)
+    else:
+        paths = gather_all_paths(source_path)
+
+    filtered_paths = filter_gathered_paths_by_default_ignores(paths)
+
+    if not filtered_paths:
+        typer.echo("No files found to copy.", err=True)
+        raise typer.Exit(0)
+
+    dest = dest.resolve()
+    dest.mkdir(parents=True, exist_ok=True)
+
+    for file_path in filtered_paths:
+        relative_path = file_path.relative_to(source_path)
+        target_path = dest / relative_path
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        with file_path.open("rb") as src_file:
+            with target_path.open("wb") as dest_file:
+                dest_file.write(src_file.read())
+    if zip:
+        import shutil
+
+        zip_path = dest.with_suffix(".zip")
+        shutil.make_archive(dest.as_posix(), "zip", dest.as_posix())
+        typer.echo(f"Files copied and zipped to {zip_path}")
+    else:
+        typer.echo(f"Files copied to {dest}")

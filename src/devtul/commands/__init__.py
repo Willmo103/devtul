@@ -11,6 +11,7 @@ from .markdown import markdown
 from .metadata import git_meta
 from .new import app as new_cli
 from .tree import tree
+from .copy import copy
 
 __all__ = [
     "find",
@@ -22,4 +23,5 @@ __all__ = [
     "empty",
     "new_cli",
     "db_cli",
+    "copy",
 ]
