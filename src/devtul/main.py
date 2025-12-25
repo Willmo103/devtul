@@ -5,8 +5,18 @@ DevTul - A collection of developer tools for working with git repositories.
 __version__ = "0.1.5"
 import typer
 
-from .commands import (db_cli, empty, find, find_folder, git_meta, ls,
-                       markdown, new_cli, tree)
+from .commands import (
+    db_cli,
+    empty,
+    find,
+    find_folder,
+    git_meta,
+    ls,
+    markdown,
+    new_cli,
+    tree,
+    copy,
+)
 from .core import reporter_app
 
 app = typer.Typer(
@@ -41,6 +51,7 @@ app.add_typer(
     help="Generate reports from git repositories",
     no_args_is_help=True,
 )
+app.command(name="cp", help="Copy files from one location to another")(copy)
 
 
 def main():

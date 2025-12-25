@@ -1,6 +1,5 @@
 import fnmatch
 import os
-import shutil
 import subprocess
 from os import walk
 from pathlib import Path
@@ -9,7 +8,7 @@ from typing import List, Optional
 import typer
 
 from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS, GitScanModes
-from devtul.core.models import FileResult, FileResultsModel, FileSearchMatch
+from devtul.core.models import FileSearchMatch
 
 
 def gather_all_paths(root: Path) -> List[Path]:
@@ -116,7 +115,7 @@ def filter_gathered_paths_by_patterns(
     return filtered_paths
 
 
-def filter_gathered_paths_dy_default_ignores(
+def filter_gathered_paths_by_default_ignores(
     paths: List[Path],
 ) -> List[Path]:
     """
@@ -460,3 +459,46 @@ def extension_is_markdown_formattable(file_path: Path) -> bool:
     from devtul.core.constants import MARKDOWN_EXTENSIONS
 
     return file_path.suffix.lower() in MARKDOWN_EXTENSIONS
+
+
+def copy_files(
+    source_path: Path,
+    dest: Path,
+    git: bool = True,
+    zip: bool = False,
+):
+    """
+    Copy files from the specified path to a destination ignoreing all default ignore patterns.
+    Examples:
+        copy ./my-repo --dest ./backup
+        copy ./my-repo --dest ./backup --zip
+    """
+    if git and (source_path / ".git").exists():
+        paths = try_gather_all_git_tracked_paths(source_path)
+    else:
+        paths = gather_all_paths(source_path)
+
+    filtered_paths = filter_gathered_paths_by_default_ignores(paths)
+
+    if not filtered_paths:
+        typer.echo("No files found to copy.", err=True)
+        raise typer.Exit(0)
+
+    dest = dest.resolve()
+    dest.mkdir(parents=True, exist_ok=True)
+
+    for file_path in filtered_paths:
+        relative_path = file_path.relative_to(source_path)
+        target_path = dest / relative_path
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        with file_path.open("rb") as src_file:
+            with target_path.open("wb") as dest_file:
+                dest_file.write(src_file.read())
+    if zip:
+        import shutil
+
+        zip_path = dest.with_suffix(".zip")
+        shutil.make_archive(dest.as_posix(), "zip", dest.as_posix())
+        typer.echo(f"Files copied and zipped to {zip_path}")
+    else:
+        typer.echo(f"Files copied to {dest}")

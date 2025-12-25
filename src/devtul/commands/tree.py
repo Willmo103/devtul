@@ -62,14 +62,14 @@ def tree(
 
     # 2. Filter via FileResult pipeline
     if not git: # Should check override ignore logic similar to ls? The command doesn't have override_ignore arg here but gather_paths does default ignores?
-        from devtul.core.file_utils import \
-            filter_gathered_paths_dy_default_ignores
-        paths = filter_gathered_paths_dy_default_ignores(paths)
+        from devtul.core.file_utils import filter_gathered_paths_by_default_ignores
+
+        paths = filter_gathered_paths_by_default_ignores(paths)
 
     file_results = []
     for p in paths:
         if p.is_file():
-             file_results.append(FileResult(p, path))
+            file_results.append(FileResult(p, path))
 
     filtered_files = []
     # Reuse filtering logic (this should ideally be in a shared function now, but keeping inline per command for now)
@@ -86,8 +86,8 @@ def tree(
         # Check empty
         from devtul.core.constants import FileContentStatus
         if not include_empty:
-             if res.content_status == FileContentStatus.EMPTY:
-                 continue
+            if res.content_status == FileContentStatus.EMPTY:
+                continue
 
         filtered_files.append(res.relative_path.as_posix()) # tree needs relative strings
 

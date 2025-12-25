@@ -72,16 +72,16 @@ def markdown(
 
     # 2. Filter via FileResult pipeline
     if not GIT_MODE:
-        from devtul.core.file_utils import \
-            filter_gathered_paths_dy_default_ignores
-        paths = filter_gathered_paths_dy_default_ignores(paths)
+        from devtul.core.file_utils import filter_gathered_paths_by_default_ignores
+
+        paths = filter_gathered_paths_by_default_ignores(paths)
 
     file_results = []
     # Original get_all_files did filtering, but gather_all_paths returns all.
     # Convert to FileResults
     for p in paths:
         if p.is_file():
-             file_results.append(FileResult(p, path))
+            file_results.append(FileResult(p, path))
 
     # Filter
     filtered_results = []
@@ -99,8 +99,8 @@ def markdown(
         # Empty
         from devtul.core.constants import FileContentStatus
         if not include_empty:
-             if res.content_status == FileContentStatus.EMPTY:
-                 continue
+            if res.content_status == FileContentStatus.EMPTY:
+                continue
 
         filtered_results.append(res)
 
@@ -217,7 +217,7 @@ def markdown(
                 content = f.read()
                 markdown_content.append(content)
         except Exception as e:
-             markdown_content.append(f"Error reading file content: {e}")
+            markdown_content.append(f"Error reading file content: {e}")
 
         markdown_content.append("```")
         markdown_content.append("")

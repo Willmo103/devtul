@@ -12,10 +12,12 @@ import typer
 from jinja2 import Environment, FileSystemLoader
 
 from devtul.core.config import JINJA_ENVIRONMENT
-from devtul.core.file_utils import (GitScanModes,
-                                    filter_gathered_paths_dy_default_ignores,
-                                    gather_all_paths,
-                                    try_gather_all_git_tracked_paths)
+from devtul.core.file_utils import (
+    GitScanModes,
+    filter_gathered_paths_by_default_ignores,
+    gather_all_paths,
+    try_gather_all_git_tracked_paths,
+)
 from devtul.core.models import FileResult
 from devtul.git.utils import get_file_git_history, get_git_metadata
 
@@ -46,7 +48,7 @@ def scan(
         raw_paths = gather_all_paths(abs_root)
 
     # 2. Filter
-    filtered_paths = filter_gathered_paths_dy_default_ignores(raw_paths)
+    filtered_paths = filter_gathered_paths_by_default_ignores(raw_paths)
 
     # 3. Build Data
     results = []

@@ -90,13 +90,13 @@ def ls(
     # Here we can just skip the filtering helpers if override_ignore is set.
 
     if not override_ignore:
-         # Note: file_utils constants imports might be needed if we want to use defaults from there
-         # But the functions in file_utils seem to use internal imports or args.
-         # Let's import the defaults to pass them if needed, or rely on functions.
-         # Looking at file_utils, filter_gathered_paths_dy_default_ignores uses the constants.
-         from devtul.core.file_utils import \
-             filter_gathered_paths_dy_default_ignores
-         paths = filter_gathered_paths_dy_default_ignores(paths)
+        # Note: file_utils constants imports might be needed if we want to use defaults from there
+        # But the functions in file_utils seem to use internal imports or args.
+        # Let's import the defaults to pass them if needed, or rely on functions.
+        # Looking at file_utils, filter_gathered_paths_dy_default_ignores uses the constants.
+        from devtul.core.file_utils import filter_gathered_paths_by_default_ignores
+
+        paths = filter_gathered_paths_by_default_ignores(paths)
 
     # Apply user supplied exclude/match on paths directly?
     # The user said "filtering should happed after the list of FileResult objects are retrund".
@@ -113,7 +113,7 @@ def ls(
 
     for p in paths:
         if p.is_file():
-             file_results.append(FileResult(p, path))
+            file_results.append(FileResult(p, path))
 
     # 4. Filter FileResults
     filtered_results = []
@@ -138,8 +138,8 @@ def ls(
             if res.content_status != FileContentStatus.EMPTY:
                 continue
         elif not include_empty:
-             if res.content_status == FileContentStatus.EMPTY:
-                 continue
+            if res.content_status == FileContentStatus.EMPTY:
+                continue
 
         filtered_results.append(res)
 
