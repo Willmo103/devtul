@@ -7,11 +7,8 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core.file_utils import (
-    build_tree_structure,
-    gather_all_paths,
-    try_gather_all_git_tracked_paths,
-)
+from devtul.core.file_utils import (build_tree_structure, gather_all_paths,
+                                    try_gather_all_git_tracked_paths)
 from devtul.core.models import FileResult
 from devtul.core.utils import write_to_file
 
@@ -65,7 +62,8 @@ def tree(
 
     # 2. Filter via FileResult pipeline
     if not git: # Should check override ignore logic similar to ls? The command doesn't have override_ignore arg here but gather_paths does default ignores?
-        from devtul.core.file_utils import filter_gathered_paths_dy_default_ignores
+        from devtul.core.file_utils import \
+            filter_gathered_paths_dy_default_ignores
         paths = filter_gathered_paths_dy_default_ignores(paths)
 
     file_results = []

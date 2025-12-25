@@ -235,8 +235,6 @@ def should_ignore_path(
     return False
 
 
-
-
 def find_all_dirs_containing_marker_folder(
     root: Path, dir_marker: Optional[str], recurse: bool = False
 ) -> List[Path]:
@@ -420,10 +418,6 @@ def search_in_file(file_path: Path, search_term: str) -> List[FileSearchMatch]:
             )
         )
     return matches
-
-
-
-
 
 
 def path_has_default_ignore_path_part(path: Path) -> bool:

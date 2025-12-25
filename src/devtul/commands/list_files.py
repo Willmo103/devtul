@@ -8,13 +8,11 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core.file_utils import (
-    gather_all_paths,
-    try_gather_all_git_tracked_paths,
-    filter_gathered_paths_by_path_parts,
-    filter_gathered_paths_by_patterns,
-    filter_paths_for_empty_files,
-)
+from devtul.core.file_utils import (filter_gathered_paths_by_path_parts,
+                                    filter_gathered_paths_by_patterns,
+                                    filter_paths_for_empty_files,
+                                    gather_all_paths,
+                                    try_gather_all_git_tracked_paths)
 from devtul.core.models import FileResult
 from devtul.core.utils import write_to_file
 
@@ -96,7 +94,8 @@ def ls(
          # But the functions in file_utils seem to use internal imports or args.
          # Let's import the defaults to pass them if needed, or rely on functions.
          # Looking at file_utils, filter_gathered_paths_dy_default_ignores uses the constants.
-         from devtul.core.file_utils import filter_gathered_paths_dy_default_ignores
+         from devtul.core.file_utils import \
+             filter_gathered_paths_dy_default_ignores
          paths = filter_gathered_paths_dy_default_ignores(paths)
 
     # Apply user supplied exclude/match on paths directly?

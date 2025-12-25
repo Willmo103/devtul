@@ -8,7 +8,7 @@ import yaml
 from jinja2 import Template
 from pydantic import BaseModel
 
-from devtul.core.config import EDITOR, APP_DATA
+from devtul.core.config import APP_DATA, EDITOR
 from devtul.core.constants import MD_XREF
 
 

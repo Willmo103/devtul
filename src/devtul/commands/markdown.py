@@ -8,11 +8,11 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core.file_utils import build_tree_structure
-from devtul.core.file_utils import gather_all_paths, try_gather_all_git_tracked_paths
+from devtul.core.file_utils import (build_tree_structure, gather_all_paths,
+                                    try_gather_all_git_tracked_paths)
 from devtul.core.models import FileResult, RepoMarkdownHeader
 from devtul.core.utils import get_markdown_mapping, write_to_file
-from devtul.git.utils import get_git_metadata, format_git_metadata_table
+from devtul.git.utils import format_git_metadata_table, get_git_metadata
 
 
 def markdown(
@@ -72,7 +72,8 @@ def markdown(
 
     # 2. Filter via FileResult pipeline
     if not GIT_MODE:
-        from devtul.core.file_utils import filter_gathered_paths_dy_default_ignores
+        from devtul.core.file_utils import \
+            filter_gathered_paths_dy_default_ignores
         paths = filter_gathered_paths_dy_default_ignores(paths)
 
     file_results = []

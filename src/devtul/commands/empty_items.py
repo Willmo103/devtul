@@ -4,8 +4,6 @@ from pathlib import Path
 import typer
 from git import Optional
 
-from devtul.core.file_utils import gather_all_paths, try_gather_all_git_tracked_paths
-
 empty = typer.Typer(
     name="empty",
     help="Locate empty files and folders in the specified path.",
@@ -58,8 +56,8 @@ def locate_empty_files(
         paths = gather_all_paths(path)
 
     # 2. Filter via FileResult pipeline - Only Empty
-    from devtul.core.models import FileResult
     from devtul.core.constants import FileContentStatus
+    from devtul.core.models import FileResult
 
     empty_items = []
 
@@ -74,15 +72,15 @@ def locate_empty_files(
 
     for p in paths:
         if p.is_file():
-             # Optimization: check stat size before full FileResult?
-             if p.stat().st_size == 0:
-                 # It's empty
-                 # We need string path for output
-                 # get_git_files returned relative strings. FileResult has relative_path.
-                 # Let's use FileResult for consistency.
-                 res = FileResult(p, path)
-                 if res.content_status == FileContentStatus.EMPTY:
-                     empty_items.append(res.relative_path.as_posix())
+            # Optimization: check stat size before full FileResult?
+            if p.stat().st_size == 0:
+                # It's empty
+                # We need string path for output
+                # get_git_files returned relative strings. FileResult has relative_path.
+                # Let's use FileResult for consistency.
+                res = FileResult(p, path)
+                if res.content_status == FileContentStatus.EMPTY:
+                    empty_items.append(res.relative_path.as_posix())
 
     if not empty_items:
         print("No empty items found.")
@@ -148,6 +146,7 @@ def find_empty_folders(
     output = "\n".join(sorted(empty_folders))
 
     print(output)
+
 
 def entry():
     empty()

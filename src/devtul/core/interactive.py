@@ -1,22 +1,12 @@
 import typer
 from rich.prompt import Prompt
 
-from devtul.core.db.session import (
-    DB_CONN_TYPES,
-    MODEL_MAP,
-    PORT_DEFAULT_MAP,
-    SERVICE_DATABASE_MAP,
-    USER_DEFAULT_MAP,
-    verify_connection,
-)
-from devtul.core.models import (
-    DatabaseConfig,
-    MongoDBDatabaseConfig,
-    MsSQLDatabaseConfig,
-    MySQLDatabaseConfig,
-    PostgresDatabaseConfig,
-    SQLiteDatabaseConfig,
-)
+from devtul.core.db.session import (DB_CONN_TYPES, MODEL_MAP, PORT_DEFAULT_MAP,
+                                    SERVICE_DATABASE_MAP, USER_DEFAULT_MAP,
+                                    verify_connection)
+from devtul.core.models import (DatabaseConfig, MongoDBDatabaseConfig,
+                                MsSQLDatabaseConfig, MySQLDatabaseConfig,
+                                PostgresDatabaseConfig, SQLiteDatabaseConfig)
 
 
 def interactive_create_database_connection():

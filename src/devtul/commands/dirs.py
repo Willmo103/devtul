@@ -36,5 +36,6 @@ def find_folder(
     for f in found:
         typer.echo(f.as_posix())
 
+
 def entry():
     typer.run(find_folder)

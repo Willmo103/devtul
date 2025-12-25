@@ -8,11 +8,8 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core.file_utils import (
-    gather_all_paths,
-    try_gather_all_git_tracked_paths,
-    search_in_file,
-)
+from devtul.core.file_utils import (gather_all_paths, search_in_file,
+                                    try_gather_all_git_tracked_paths)
 from devtul.core.models import FileResult
 from devtul.core.utils import write_to_file
 
@@ -66,7 +63,8 @@ def find(
         paths = gather_all_paths(path)
 
     if not git:
-        from devtul.core.file_utils import filter_gathered_paths_dy_default_ignores
+        from devtul.core.file_utils import \
+            filter_gathered_paths_dy_default_ignores
         paths = filter_gathered_paths_dy_default_ignores(paths)
 
     # 2. Filter via FileResult pipeline
