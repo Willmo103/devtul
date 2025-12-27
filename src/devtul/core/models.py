@@ -196,25 +196,6 @@ class RepoMarkdownHeader(BaseModel):
         return f"---\n{yaml_content}---\n"
 
 
-class markdownSchema(BaseModel):
-    """Schema for markdown metadata."""
-
-    root_path: Optional[str] = Field(None, description="Root path of the repository")
-    total_files: Optional[int] = Field(0, description="Total number of files")
-    included_files: Optional[int] = Field(
-        None, description="Number of included files after filtering"
-    )
-    generated_at: Optional[datetime] = Field(
-        default_factory=lambda: datetime.now(tz=timezone.utc).isoformat(),
-        description="Timestamp of when the metadata was generated",
-    )
-    tree: str = Field(..., description="Tree structure of the files in markdown format")
-    git_metadata: dict = Field(
-        None, description="Git metadata information", alias="git_metadata"
-    )
-    markdown_content: str = Field(..., description="Full markdown content")
-
-
 class FileSearchMatch(BaseModel):
     """Schema for a search match within a file."""
 
@@ -239,20 +220,6 @@ class FileSearchMatch(BaseModel):
         if self.file_path is None and self.relative_path is not None:
             self.file_path = Path(self.relative_path).resolve().as_posix()
         return f"{Path(self.file_path).resolve().as_posix()}:{self.line_number}"
-
-
-class FileMatchResults(BaseModel):
-    """Schema for file match results."""
-
-    search_term: str = Field(..., description="The term that was searched for")
-    total_matches: int = Field(..., description="Total number of matches found")
-    matches: list[FileSearchMatch] = Field(
-        ..., description="List of file search matches"
-    )
-
-    def to_yaml(self) -> str:
-        """Convert the results to a YAML string."""
-        return yaml.dump(self.model_dump())
 
 
 class UserTemplate(BaseModel):
