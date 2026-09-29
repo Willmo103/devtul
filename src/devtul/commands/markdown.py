@@ -43,6 +43,9 @@ def markdown(
     git: bool = typer.Option(
         True, "--git/--no-git", help="look for git files or all files"
     ),
+    no_ignore: bool = typer.Option(
+        False, "--no-ignore", help="Do not apply default ignore patterns"
+    ),
 ):
     """
     Generate a comprehensive markdown documentation from git repository.
@@ -72,9 +75,12 @@ def markdown(
 
     # 2. Filter via FileResult pipeline
     if not GIT_MODE:
-        from devtul.core.file_utils import filter_gathered_paths_by_default_ignores
+        if no_ignore:
+            pass  # No filtering
+        else:
+            from devtul.core.file_utils import filter_gathered_paths_by_default_ignores
 
-        paths = filter_gathered_paths_by_default_ignores(paths)
+            paths = filter_gathered_paths_by_default_ignores(paths)
 
     file_results = []
     # Original get_all_files did filtering, but gather_all_paths returns all.
@@ -242,6 +248,7 @@ def markdown(
         # However, for huge content, standard print might be better if we expect pipes.
         # Use simple print as original did? Original used `print`.
         print(final_content)
+
 
 def entry():
     typer.run(markdown)
