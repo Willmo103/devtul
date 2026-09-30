@@ -1,0 +1,12 @@
+> well I was hoping to import the piper library for a 'speak' command where I could pipe texk into (and download/configure models  for speach, configure other settings e.g. speach rate, speaker (for multi-speaker models), etc. so I *do* want to *keep* the onnxruntime and piper (and its deps.).
+
+Okay, I want to do a mix of A & B; I do want to fix the issue (but check that it's valid, it may be stale) that should be a minor issue. 
+
+Next I want to evaluate the path related tools; I **need** everything to work **without** being inside of a git repo (they should auto detect, and filter git repos based on git files ls.
+I also want **YOU** to evaluate this context and cherrypick it for code as described below:
+
+** IMPORTANT CONTEXT NOTES** There is a *stale* repo in the parent folder of this project C:/src/controller-api ( I have used the *already installed `dt` command* to generate its md flattened repr into the file @[.agents/docs/controller-api_-_dt_markdown.md] ) this holds some classes and schemas for representing files lines etc etc. I care much much less about all of the docling stuff now, but;
+GOAL1:  I would like to model the importing and representing the file structures as these clases ns uaing these methods (where it makes sense). 
+GOAL 2: evaluate and selectively pick any other selections from the flattened code that could function as replacement or modifications to this codebase **or** expand its tool set. 
+
+SUB-GOAL: 1 **After this process completes** -- Create a workflow detailing **detailed rules** for the process you took to: **decide which code *if any* should be selected for incorperation to this project**, the steps you took to create a migration plan with programatic and UAT testing, How the process should be documented in the pr (specific `feature/code-migration-<some-name>` branch format etc...), testing; all failures in tresting into .artifacts as `impl_test_run_#.log` all final uat testing results to a uat testing file in the same way... 
