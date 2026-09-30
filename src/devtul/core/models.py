@@ -1,11 +1,167 @@
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 import yaml
-from git import Optional
-from pydantic import BaseModel, ConfigDict, Field, computed_field
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_serializer
 
 from devtul.core.constants import FileContentStatus
+
+
+class FilePath(BaseModel):
+    """
+    Decomposed path model representing pathlib.Path attributes.
+    Cherrypicked from controller-api for rich cross-platform path inspection.
+    """
+
+    name: str
+    suffix: str = ""
+    suffixes: list[str] = Field(default_factory=list)
+    stem: str = ""
+    parent: str = ""
+    parents: list[str] = Field(default_factory=list)
+    anchor: str = ""
+    drive: str = ""
+    root: str = ""
+    parts: list[str] = Field(default_factory=list)
+    is_absolute: bool = False
+
+    @property
+    def Path(self) -> Path:
+        """Reconstruct the original Path object."""
+        return Path(*self.parts) if self.parts else Path(self.name)
+
+    @classmethod
+    def from_path(cls, path: Path) -> "FilePath":
+        resolved = path.resolve()
+        return cls(
+            name=resolved.name,
+            suffix=resolved.suffix,
+            suffixes=list(resolved.suffixes),
+            stem=resolved.stem,
+            parent=str(resolved.parent),
+            parents=[str(p) for p in resolved.parents],
+            anchor=resolved.anchor,
+            drive=resolved.drive,
+            root=resolved.root,
+            parts=list(resolved.parts),
+            is_absolute=resolved.is_absolute(),
+        )
+
+
+class BaseFileStat(BaseModel):
+    """
+    Pydantic model representing decomposed file statistics across operating systems.
+    Cherrypicked from controller-api.
+    """
+
+    st_mode: Optional[int] = None
+    st_ino: Optional[int] = None
+    st_dev: Optional[int] = None
+    st_nlink: Optional[int] = None
+    st_uid: Optional[int] = None
+    st_gid: Optional[int] = None
+    st_size: Optional[int] = None
+    st_atime: Optional[float] = None
+    st_mtime: Optional[float] = None
+    st_ctime: Optional[float] = None
+    st_atime_ns: Optional[int] = None
+    st_mtime_ns: Optional[int] = None
+    st_ctime_ns: Optional[int] = None
+    st_file_attributes: Optional[int] = None
+
+    @classmethod
+    def from_stat(cls, stat_obj: Any) -> "BaseFileStat":
+        data = {}
+        for attr in [
+            "st_mode", "st_ino", "st_dev", "st_nlink", "st_uid", "st_gid",
+            "st_size", "st_atime", "st_mtime", "st_ctime",
+            "st_atime_ns", "st_mtime_ns", "st_ctime_ns", "st_file_attributes",
+        ]:
+            if hasattr(stat_obj, attr):
+                data[attr] = getattr(stat_obj, attr)
+        return cls(**data)
+
+    @classmethod
+    def from_path(cls, path: Union[Path, str]) -> "BaseFileStat":
+        """Construct BaseFileStat directly from a filesystem path."""
+        p = Path(path).resolve()
+        return cls.from_stat(p.stat())
+
+    def to_iso_dict(self) -> dict:
+        d = self.model_dump()
+        for k in ["st_atime", "st_mtime", "st_ctime"]:
+            val = d.get(k)
+            if val is not None:
+                try:
+                    d[k] = datetime.fromtimestamp(val, tz=timezone.utc).isoformat()
+                except Exception:
+                    pass
+        return d
+
+
+class TextFileLine(BaseModel):
+    """
+    Represents an indexed line in a text file.
+    Cherrypicked from controller-api for structured line indexing and search.
+    """
+
+    file_id: Optional[str] = None
+    line_number: int
+    content: str
+    content_hash: Optional[str] = None
+
+    @property
+    def is_empty(self) -> bool:
+        """Check if line consists only of whitespace."""
+        return self.content.strip() == ""
+
+    @property
+    def line_length(self) -> int:
+        """Return length of line content."""
+        return len(self.content)
+
+
+class BaseTextFile(BaseModel):
+    """
+    Structured text file model with content and enumerated lines.
+    Cherrypicked from controller-api.
+    """
+
+    path: FilePath
+    stat: BaseFileStat
+    sha256: Optional[str] = None
+    content: Optional[str] = None
+    lines: list[TextFileLine] = Field(default_factory=list)
+
+    @classmethod
+    def from_file(cls, file_path: Path, read_content: bool = True) -> "BaseTextFile":
+        resolved = file_path.resolve()
+        st = resolved.stat()
+        fp = FilePath.from_path(resolved)
+        bs = BaseFileStat.from_stat(st)
+        content = None
+        lines = []
+        if read_content and resolved.is_file():
+            try:
+                with resolved.open("r", encoding="utf-8", errors="replace") as f:
+                    content = f.read()
+                    lines = [
+                        TextFileLine(
+                            file_id=fp.name,
+                            line_number=idx + 1,
+                            content=line.rstrip("\r\n"),
+                        )
+                        for idx, line in enumerate(content.splitlines())
+                    ]
+            except Exception:
+                pass
+        return cls(path=fp, stat=bs, content=content, lines=lines)
+
+    @classmethod
+    def from_path(cls, file_path: Union[Path, str], read_content: bool = True) -> "BaseTextFile":
+        """Alias for from_file accepting Path or str."""
+        return cls.from_file(Path(file_path), read_content=read_content)
 
 
 class Paths(BaseModel):
@@ -127,6 +283,19 @@ class FileResult:
 
     def add_event(self, event: dict):
         self.events.append(event)
+
+    @property
+    def file_path_model(self) -> FilePath:
+        """Decomposed FilePath model for this file."""
+        return FilePath.from_path(self.full_path)
+
+    @property
+    def file_stat_model(self) -> BaseFileStat:
+        """Decomposed BaseFileStat model for this file."""
+        try:
+            return BaseFileStat.from_stat(self.full_path.stat(follow_symlinks=False))
+        except Exception:
+            return BaseFileStat()
 
 
 class FileResultModel(BaseModel):

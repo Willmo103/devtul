@@ -44,3 +44,14 @@ This rule specifies the exact structure, directory hierarchy, and naming convent
   - Commands executed and their outputs.
   - Test suite and lint validation results.
   - Current status of linked GitHub issues and PRs.
+
+### 5. `impl_test_run_<n>.log` (Programmatic Testing Artifacts)
+- All test suite runs (pytest, flake8, unit tests) containing failures or milestone execution logs MUST be captured in the session directory.
+- **Incrementing Number Rule:** Every subsequent test run MUST increment the run index (`impl_test_run_1.log`, `impl_test_run_2.log`, `impl_test_run_3.log`, etc.).
+- **Never Overwrite:** Never overwrite an existing run log. Preserving previous logs provides a complete historical audit trail of issues encountered and remedies applied.
+
+### 6. `uat_test_run_<n>.log` (User Acceptance Testing Artifacts)
+- All manual or automated CLI end-to-end user verification runs MUST be captured into the session directory.
+- **Incrementing Number Rule:** Every subsequent UAT pass MUST increment the run index (`uat_test_run_1.log`, `uat_test_run_2.log`, `uat_test_run_3.log`, etc.).
+- **Never Overwrite:** Never overwrite an existing UAT log file.
+

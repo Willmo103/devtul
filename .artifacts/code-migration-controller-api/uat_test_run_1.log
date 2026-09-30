@@ -1,0 +1,93 @@
+=== FINAL UAT TEST RUN 1: PATH TOOLS & CHERRYPICKED CONTROLLER-API MODELS ===
+Timestamp: 2026-09-29T22:06:30.9156436-05:00
+
+--- 1. Testing 'dt tree --no-git' ---
+C:/src/devtul/
+Γö£ΓöÇΓöÇ .agents/
+Γöé   Γö£ΓöÇΓöÇ docs/
+Γöé   Γöé   ΓööΓöÇΓöÇ controller-api_-_dt_markdown.md
+Γöé   Γö£ΓöÇΓöÇ rules/
+Γöé   Γöé   Γö£ΓöÇΓöÇ agent_development_workflow.md
+Γöé   Γöé   ΓööΓöÇΓöÇ session_artifacts.md
+Γöé   Γö£ΓöÇΓöÇ skills/
+Γöé   Γöé   ΓööΓöÇΓöÇ agent-ops/
+Γöé   Γöé       Γö£ΓöÇΓöÇ scripts/
+Γöé   Γöé       Γöé   ΓööΓöÇΓöÇ agent_ops.py
+Γöé   Γöé       ΓööΓöÇΓöÇ SKILL.md
+Γöé   ΓööΓöÇΓöÇ workflows/
+Γöé       Γö£ΓöÇΓöÇ code_migration_and_evaluation.md
+Γöé       Γö£ΓöÇΓöÇ codebase_modernization.md
+Γöé       Γö£ΓöÇΓöÇ git_branch_issue_pr.md
+Γöé       ΓööΓöÇΓöÇ session_lifecycle.md
+Γö£ΓöÇΓöÇ .artifacts/
+Γöé   Γö£ΓöÇΓöÇ code-migration-controller-api/
+Γöé   Γöé   Γö£ΓöÇΓöÇ impl_test_run_1.log
+Γöé   Γöé   Γö£ΓöÇΓöÇ implementation_plan.md
+Γöé   Γöé   Γö£ΓöÇΓöÇ uat_test_run_1.log
+Γöé   Γöé   ΓööΓöÇΓöÇ user_prompt.txt
+Γöé   ΓööΓöÇΓöÇ setup-agent-development-environment/
+Γöé       Γö£ΓöÇΓöÇ implementation_plan.md
+Γöé       Γö£ΓöÇΓöÇ user_feedback_1.md
+Γöé       Γö£ΓöÇΓöÇ user_prompt.txt
+Γöé       ΓööΓöÇΓöÇ walkthrough.md
+Γö£ΓöÇΓöÇ scripts/
+Γöé   Γö£ΓöÇΓöÇ build-exe.cmd
+
+--- 2. Testing 'dt ls --no-git' ---
+.agents/docs/controller-api_-_dt_markdown.md
+.agents/rules/agent_development_workflow.md
+.agents/rules/session_artifacts.md
+.agents/skills/agent-ops/SKILL.md
+.agents/skills/agent-ops/scripts/agent_ops.py
+.agents/workflows/code_migration_and_evaluation.md
+.agents/workflows/codebase_modernization.md
+.agents/workflows/git_branch_issue_pr.md
+.agents/workflows/session_lifecycle.md
+.artifacts/code-migration-controller-api/impl_test_run_1.log
+.artifacts/code-migration-controller-api/implementation_plan.md
+.artifacts/code-migration-controller-api/uat_test_run_1.log
+.artifacts/code-migration-controller-api/user_prompt.txt
+.artifacts/setup-agent-development-environment/implementation_plan.md
+.artifacts/setup-agent-development-environment/user_feedback_1.md
+.artifacts/setup-agent-development-environment/user_prompt.txt
+.artifacts/setup-agent-development-environment/walkthrough.md
+.devtul_cache.json
+.flake8
+.gitignore
+.piper_repo.md
+GEMINI.md
+README.md
+devtul.spec
+issues.md
+
+--- 3. Testing 'dt find --no-git def main' ---
+C:/src/devtul/.agents/docs/controller-api_-_dt_markdown.md:19338
+C:/src/devtul/.agents/docs/controller-api_-_dt_markdown.md:19745
+C:/src/devtul/.agents/skills/agent-ops/scripts/agent_ops.py:207
+C:/src/devtul/.artifacts/code-migration-controller-api/uat_test_run_1.log:63
+C:/src/devtul/.piper_repo.md:96
+C:/src/devtul/.piper_repo.md:575
+C:/src/devtul/.piper_repo.md:728
+C:/src/devtul/.piper_repo.md:1571
+C:/src/devtul/.piper_repo.md:1616
+C:/src/devtul/.piper_repo.md:1697
+C:/src/devtul/src/devtul/main.py:57
+
+--- 4. Testing Non-Git Directory Auto-Detection ---
+Non-git directory created at C:\Users\Will\AppData\Local\Temp\devtul_uat_nongit_1733342042
+Running dt tree inside non-git directory:
+C:/Users/Will/AppData/Local/Temp/devtul_uat_nongit_1733342042/
+Γö£ΓöÇΓöÇ subdir/
+Γöé   ΓööΓöÇΓöÇ nested.txt
+ΓööΓöÇΓöÇ sample_script.py
+Running dt ls inside non-git directory:
+sample_script.py
+subdir/nested.txt
+
+--- 5. Testing Model Instantiation & Interop ---
+FilePath: name=pyproject.toml, suffix=.toml, stem=pyproject
+BaseFileStat: size=1841 bytes, modified=1766798598.6361065
+BaseTextFile: lines=93, content_length=1841
+FileResult interop: path=pyproject.toml, stat_size=1841
+PiperEngine: configured default model=en_US-lessac-medium
+ALL MODEL CHECKS PASSED!

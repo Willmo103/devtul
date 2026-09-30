@@ -1,5 +1,6 @@
 import fnmatch
 import os
+import re
 import subprocess
 from os import walk
 from pathlib import Path
@@ -9,6 +10,20 @@ import typer
 
 from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS, GitScanModes
 from devtul.core.models import FileSearchMatch
+
+
+def is_git_repo(path: Path) -> bool:
+    """Quickly check if a directory is inside a git repository without full tree scan."""
+    try:
+        target = path.resolve()
+        if (target / ".git").exists():
+            return True
+        for parent in target.parents:
+            if (parent / ".git").exists():
+                return True
+        return False
+    except Exception:
+        return False
 
 
 def gather_all_paths(root: Path) -> List[Path]:
@@ -27,8 +42,10 @@ def try_gather_all_git_tracked_paths(repo_path: Path) -> List[Path]:
     if not repo_path.is_dir() or not repo_path.exists():
         typer.echo(f"Error: {repo_path} is not a valid directory", err=True)
         return []
-    elif not any(repo_path.rglob(".git")):
-        return gather_all_paths(repo_path)
+    elif not is_git_repo(repo_path):
+        return filter_gathered_paths_by_default_ignores(
+            gather_all_paths(repo_path), root_path=repo_path
+        )
     tracked_paths = []
     (shell := os.name == "nt")
     try:
@@ -80,19 +97,42 @@ def try_gather_all_git_tracked_paths(repo_path: Path) -> List[Path]:
 
 
 def filter_gathered_paths_by_path_parts(
-    paths: List[Path], ignore_parts: List[str]
+    paths: List[Path],
+    ignore_parts: List[str],
+    root_path: Optional[Path] = None,
 ) -> List[Path]:
     """
-    Filter gathered paths by ignoring those that contain specified path parts.
-    Args:
-        paths: List of gathered file and directory paths
-        ignore_parts: List of strings that should not appear anywhere in the path
-    Returns:
-        Filtered list of paths
+    Filter gathered paths by ignoring those that match specified path parts.
+    Matches exact path components or fnmatch patterns against individual path components,
+    preventing substrings from inadvertently matching legitimate files (e.g., .gitignore).
+    If root_path is provided (or inferable as a common root), only components relative
+    to that root are evaluated against ignore_parts, preventing legitimate directories
+    in system temp/appdata from having all files dropped.
     """
     filtered_paths = []
+    resolved_root = root_path.resolve() if root_path is not None else None
+    if resolved_root is None and paths:
+        try:
+            common = os.path.commonpath([str(p.resolve()) for p in paths])
+            if common and Path(common).is_dir():
+                resolved_root = Path(common)
+        except Exception:
+            resolved_root = None
+
     for path in paths:
-        if not any(ign in path.as_posix() for ign in ignore_parts):
+        if resolved_root is not None:
+            try:
+                parts = path.resolve().relative_to(resolved_root).parts
+            except ValueError:
+                parts = path.parts
+        else:
+            parts = path.parts
+        ignored = False
+        for ign in ignore_parts:
+            if any(part == ign or fnmatch.fnmatch(part, ign) for part in parts):
+                ignored = True
+                break
+        if not ignored:
             filtered_paths.append(path)
     return filtered_paths
 
@@ -117,15 +157,17 @@ def filter_gathered_paths_by_patterns(
 
 def filter_gathered_paths_by_default_ignores(
     paths: List[Path],
+    root_path: Optional[Path] = None,
 ) -> List[Path]:
     """
     Filter gathered paths by ignoring those that match default ignore parts and patterns.
     Args:
         paths: List of gathered file and directory paths
+        root_path: Optional root directory path to evaluate ignore parts relatively
     Returns:
         Filtered list of paths
     """
-    paths = filter_gathered_paths_by_path_parts(paths, IGNORE_PARTS)
+    paths = filter_gathered_paths_by_path_parts(paths, IGNORE_PARTS, root_path=root_path)
     paths = filter_gathered_paths_by_patterns(paths, IGNORE_EXTENSIONS)
     return paths
 
@@ -308,13 +350,14 @@ def get_all_files_from_marked_folders(
     marked_dirs = find_all_dirs_containing_marker_folder(root, dir_marker, recurse=True)
 
     for marked_dir in marked_dirs:
-        files_in_dir = get_all_files(
-            marked_dir,
-            ignore_parts=ignore_parts,
-            ignore_patterns=ignore_patterns,
-            include_empty=include_empty,
-        )
-        all_files.extend(files_in_dir)
+        raw_paths = gather_all_paths(marked_dir)
+        filtered_paths = filter_gathered_paths_by_path_parts(raw_paths, ignore_parts)
+        filtered_paths = filter_gathered_paths_by_patterns(filtered_paths, ignore_patterns)
+        for p in filtered_paths:
+            if p.is_file():
+                if not include_empty and p.stat().st_size == 0:
+                    continue
+                all_files.append(p)
 
     return sorted(all_files)
 
@@ -327,7 +370,8 @@ def build_tree_structure(files: List[str], parent: str = ".") -> str:
     # Build directory structure
     tree_dict = {}
     for file_path in sorted(files):
-        parts = file_path.split("/")
+        # Split on both / and \ for cross-platform robustness
+        parts = [p for p in re.split(r"[\\/]", file_path) if p]
         current = tree_dict
 
         for i, part in enumerate(parts):

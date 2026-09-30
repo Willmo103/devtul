@@ -9,6 +9,7 @@ from typing import List
 
 TEMPLATES_DIR = (Path(__file__).parent / "templates").resolve()
 IGNORE_PARTS: List[str] = [
+    ".git",
     ".hg",
     ".svn",
     "node_modules",

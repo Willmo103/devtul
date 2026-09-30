@@ -97,8 +97,18 @@ python .agents/skills/agent-ops/scripts/agent_ops.py session-feedback --name <se
 
 ---
 
+### Step 5b: Testing Artifact Archiving
+1. **Programmatic Test Runs (`impl_test_run_<n>.log`):**
+   - Save all test run outputs (especially failures and validation milestones) into `.artifacts/<session-slug>/impl_test_run_<n>.log`.
+   - Each subsequent run increments `<n>` (`impl_test_run_1.log`, `impl_test_run_2.log`, etc.). Never overwrite earlier logs.
+2. **User Acceptance Testing Runs (`uat_test_run_<n>.log`):**
+   - Record all CLI end-to-end verification runs into `.artifacts/<session-slug>/uat_test_run_<n>.log`.
+   - Each subsequent UAT pass increments `<n>` (`uat_test_run_1.log`, `uat_test_run_2.log`, etc.). Never overwrite earlier logs.
+
+---
+
 ### Step 6: Walkthrough & Verification
-1. Run linting (`uv run ruff check src`) and tests (`uv run pytest`).
+1. Run linting (`uv run flake8 src tests scripts`) and tests (`uv run pytest`).
 2. Write `.artifacts/<session-slug>/walkthrough.md` documenting:
    - Summary of changes across files.
    - Key test and command outputs.

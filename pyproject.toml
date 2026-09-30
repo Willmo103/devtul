@@ -77,10 +77,10 @@ dt-empty = "devtul.commands.empty_items:entry"
 dt-new = "devtul.commands.new:entry"
 
 
-[tool.pytest.coverage.run]
-branch = true
-source = ["devtul"]
-omit = ["tests/*", "src/devtul/__init__.py"]
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
 
 
 [dependency-groups]
