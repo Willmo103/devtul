@@ -66,4 +66,4 @@ def test_cli_show():
         text=True,
         check=True,
     )
-    assert res.stdout.strip() == "0.1.13"
+    assert res.stdout.strip() == get_current_version()

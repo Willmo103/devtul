@@ -1,0 +1,31 @@
+=== PROGRAMMATIC IMPLEMENTATION TEST RUN 2 (FAILURE LOG) ===
+Timestamp: 2026-09-29T23:31:48Z
+Command: uv run pytest -v
+
+================================== FAILURES ===================================
+________________________________ test_cli_show ________________________________
+
+    def test_cli_show():
+        res = subprocess.run(
+            [sys.executable, "scripts/bump_version.py", "show"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+>       assert res.stdout.strip() == "0.1.13"
+E       AssertionError: assert '0.2.0' == '0.1.13'
+E         
+E         - 0.1.13
+E         + 0.2.0
+
+tests\test_version_bump.py:69: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_version_bump.py::test_cli_show - AssertionError: assert '0.2.0' == '0.1.13'
+======================== 1 failed, 12 passed in 0.94s =========================
+
+Root Cause:
+`test_cli_show` hardcoded `0.1.13` instead of comparing against `get_current_version()`.
+Since GitHub Actions automated release pipeline successfully bumped the version to `0.2.0` on master, the assertion failed.
+
+Remediation:
+Update `tests/test_version_bump.py` to assert `res.stdout.strip() == get_current_version()`.

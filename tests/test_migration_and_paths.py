@@ -19,10 +19,12 @@ from devtul.core.models import (
 from devtul.core.tts import PiperConfig, PiperEngine
 
 
-def test_is_git_repo():
+def test_is_git_repo(tmp_path):
     repo_root = Path(__file__).resolve().parent.parent
     assert is_git_repo(repo_root) is True
-    assert is_git_repo(Path("C:/Windows")) is False
+    non_git = tmp_path / "isolated_non_git_folder"
+    non_git.mkdir()
+    assert is_git_repo(non_git) is False
 
 
 def test_ignore_parts_excludes_git_but_keeps_gitignore():

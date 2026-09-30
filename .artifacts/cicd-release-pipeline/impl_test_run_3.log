@@ -1,0 +1,33 @@
+=== PROGRAMMATIC IMPLEMENTATION TEST RUN 3 (CLEAN PASS LOG) ===
+Timestamp: 2026-09-29T23:32:39Z
+Command: uv run pytest -v
+
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-9.0.2, pluggy-1.6.0 -- C:\src\devtul\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\src\devtul
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.12.0
+collecting ... collected 13 items
+
+tests/test_migration_and_paths.py::test_is_git_repo PASSED               [  7%]
+tests/test_migration_and_paths.py::test_ignore_parts_excludes_git_but_keeps_gitignore PASSED [ 15%]
+tests/test_migration_and_paths.py::test_build_tree_structure_cross_platform PASSED [ 23%]
+tests/test_migration_and_paths.py::test_file_path_model PASSED           [ 30%]
+tests/test_migration_and_paths.py::test_base_file_stat_model PASSED      [ 38%]
+tests/test_migration_and_paths.py::test_base_text_file_and_lines PASSED  [ 46%]
+tests/test_migration_and_paths.py::test_ignore_relative_to_root_in_temp_dir PASSED [ 53%]
+tests/test_migration_and_paths.py::test_piper_engine_config PASSED       [ 61%]
+tests/test_version_bump.py::test_parse_semver_valid PASSED               [ 69%]
+tests/test_version_bump.py::test_parse_semver_invalid PASSED             [ 76%]
+tests/test_version_bump.py::test_calculate_next_version PASSED           [ 84%]
+tests/test_version_bump.py::test_update_files_in_temp_dir PASSED         [ 92%]
+tests/test_version_bump.py::test_cli_show PASSED                         [100%]
+
+============================= 13 passed in 0.67s ==============================
+
+Outcome:
+All unit tests passed cleanly across both test modules.
+- Cross-platform test_is_git_repo verified with tmp_path isolation.
+- Dynamic version verification in test_cli_show verified with get_current_version().
