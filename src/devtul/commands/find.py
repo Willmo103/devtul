@@ -65,10 +65,10 @@ def find(
     if not git:
         from devtul.core.file_utils import filter_gathered_paths_by_default_ignores
 
-        paths = filter_gathered_paths_by_default_ignores(paths)
+        paths = filter_gathered_paths_by_default_ignores(paths, root_path=path)
 
     # 2. Filter via FileResult pipeline
-    path_map = {} # Store relative -> full path for search
+    path_map = {}  # Store relative -> full path for search
     file_results = []
     for p in paths:
         if p.is_file():
@@ -149,6 +149,7 @@ def find(
     else:
         typer.echo(output)
     return
+
 
 def entry():
     typer.run(find)

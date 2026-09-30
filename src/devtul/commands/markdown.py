@@ -8,8 +8,12 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core.file_utils import (build_tree_structure, gather_all_paths,
-                                    try_gather_all_git_tracked_paths)
+from devtul.core.file_utils import (
+    build_tree_structure,
+    gather_all_paths,
+    is_git_repo,
+    try_gather_all_git_tracked_paths,
+)
 from devtul.core.models import FileResult, RepoMarkdownHeader
 from devtul.core.utils import get_markdown_mapping, write_to_file
 from devtul.git.utils import format_git_metadata_table, get_git_metadata
@@ -63,7 +67,7 @@ def markdown(
         typer.echo(f"Error: Path {path} does not exist", err=True)
         raise typer.Exit(1)
 
-    has_git = any(path.rglob(".git"))
+    has_git = is_git_repo(path)
 
     # 1. Gather Paths
     if (not git) or (not has_git):
@@ -80,7 +84,7 @@ def markdown(
         else:
             from devtul.core.file_utils import filter_gathered_paths_by_default_ignores
 
-            paths = filter_gathered_paths_by_default_ignores(paths)
+            paths = filter_gathered_paths_by_default_ignores(paths, root_path=path)
 
     file_results = []
     # Original get_all_files did filtering, but gather_all_paths returns all.
@@ -133,7 +137,7 @@ def markdown(
     frontmatter = RepoMarkdownHeader(
         generated_at=datetime.now().isoformat(),
         repo_path=str(path.absolute()),
-        file_count=len(file_results), # Total before filter? or total scanned? Assuming before filter but after gather.
+        file_count=len(file_results),  # Total before filter? or total scanned? Assuming before filter but after gather.
         files_included=len(filtered_results),
     )
 

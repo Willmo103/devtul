@@ -96,7 +96,7 @@ def ls(
         # Looking at file_utils, filter_gathered_paths_dy_default_ignores uses the constants.
         from devtul.core.file_utils import filter_gathered_paths_by_default_ignores
 
-        paths = filter_gathered_paths_by_default_ignores(paths)
+        paths = filter_gathered_paths_by_default_ignores(paths, root_path=path)
 
     # Apply user supplied exclude/match on paths directly?
     # The user said "filtering should happed after the list of FileResult objects are retrund".
@@ -170,6 +170,7 @@ def ls(
         typer.echo(output)
     else:
         write_to_file(output, file)
+
 
 def entry():
     typer.run(ls)
