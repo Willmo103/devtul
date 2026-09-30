@@ -1,0 +1,70 @@
+=== FINAL UAT TEST RUN 1: CI/CD PIPELINE & VERSION AUTOMATION ===
+Timestamp: 2026-09-29T23:15:59.9770382-05:00
+
+--- 1. Testing 'dt version' CLI command ---
+0.1.13
+
+--- 2. Testing 'python scripts/bump_version.py show' ---
+0.1.13
+
+--- 3. Testing 'python -m devtul version' ---
+0.1.13
+
+--- 4. Testing compiled standalone executable 'dist\devtul.exe version' ---
+0.1.13
+
+--- 5. Testing compiled executable 'dist\devtul.exe tree --no-git' ---
+C:/src/devtul/
+Γö£ΓöÇΓöÇ .agents/
+Γöé   Γö£ΓöÇΓöÇ docs/
+Γöé   Γöé   ΓööΓöÇΓöÇ controller-api_-_dt_markdown.md
+Γöé   Γö£ΓöÇΓöÇ rules/
+Γöé   Γöé   Γö£ΓöÇΓöÇ agent_development_workflow.md
+Γöé   Γöé   ΓööΓöÇΓöÇ session_artifacts.md
+Γöé   Γö£ΓöÇΓöÇ skills/
+Γöé   Γöé   ΓööΓöÇΓöÇ agent-ops/
+Γöé   Γöé       Γö£ΓöÇΓöÇ scripts/
+Γöé   Γöé       Γöé   ΓööΓöÇΓöÇ agent_ops.py
+Γöé   Γöé       ΓööΓöÇΓöÇ SKILL.md
+Γöé   ΓööΓöÇΓöÇ workflows/
+Γöé       Γö£ΓöÇΓöÇ cicd_versioning_and_release.md
+Γöé       Γö£ΓöÇΓöÇ code_migration_and_evaluation.md
+Γöé       Γö£ΓöÇΓöÇ codebase_modernization.md
+Γöé       Γö£ΓöÇΓöÇ git_branch_issue_pr.md
+Γöé       ΓööΓöÇΓöÇ session_lifecycle.md
+Γö£ΓöÇΓöÇ .artifacts/
+Γöé   Γö£ΓöÇΓöÇ cicd-release-pipeline/
+Γöé   Γöé   Γö£ΓöÇΓöÇ impl_test_run_1.log
+Γöé   Γöé   Γö£ΓöÇΓöÇ implementation_plan.md
+Γöé   Γöé   Γö£ΓöÇΓöÇ uat_test_run_1.log
+Γöé   Γöé   Γö£ΓöÇΓöÇ user_feedback_1.md
+Γöé   Γöé   ΓööΓöÇΓöÇ user_prompt.txt
+Γöé   Γö£ΓöÇΓöÇ code-migration-controller-api/
+Γöé   Γöé   Γö£ΓöÇΓöÇ impl_test_run_1.log
+Γöé   Γöé   Γö£ΓöÇΓöÇ implementation_plan.md
+Γöé   Γöé   Γö£ΓöÇΓöÇ uat_test_run_1.log
+Γöé   Γöé   Γö£ΓöÇΓöÇ user_prompt.txt
+Γöé   Γöé   ΓööΓöÇΓöÇ walkthrough.md
+Γöé   ΓööΓöÇΓöÇ setup-agent-development-environment/
+Γöé       Γö£ΓöÇΓöÇ implementation_plan.md
+Γöé       Γö£ΓöÇΓöÇ user_feedback_1.md
+Γöé       Γö£ΓöÇΓöÇ user_prompt.txt
+
+--- 6. Testing 'uv build' package generation ---
+
+Name                             Length LastWriteTime
+----                             ------ -------------
+devtul-0.1.13-py3-none-any.whl    52279 9/29/2026 11:16:17 PM
+devtul-0.1.13.tar.gz              38421 9/29/2026 11:16:16 PM
+devtul-0.1.3-py3-none-any.whl     17394 10/7/2025 3:04:34 AM
+devtul-0.1.3.tar.gz                9089 10/7/2025 3:04:34 AM
+devtul-0.1.7-py3-none-any.whl     21788 10/21/2025 2:50:49 PM
+devtul-0.1.7.tar.gz               13375 10/21/2025 2:50:48 PM
+devtul.exe                     58191989 9/29/2026 11:15:16 PM
+
+
+
+--- 7. Testing GitHub Actions Workflow YAML Parsing ---
+CI Workflow valid: name = CI , jobs = ['test']
+Release Workflow valid: name = Release , jobs = ['bump-version', 'build-wheel', 'build-windows-exe', 'publish-release']
+

@@ -1,0 +1,171 @@
+name: Release
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Version bump level"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  bump-version:
+    name: Bump Version & Create Tag
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+      tag_name: ${{ steps.bump.outputs.tag_name }}
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Determine bump level and update files
+        id: bump
+        shell: bash
+        run: |
+          BUMP_TYPE="patch"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BUMP_TYPE="${{ inputs.bump_type }}"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
+            TITLE="${{ github.event.pull_request.title }}"
+            if echo "$LABELS" | grep -iq "major"; then
+              BUMP_TYPE="major"
+            elif echo "$LABELS" | grep -iq "minor"; then
+              BUMP_TYPE="minor"
+            elif echo "$LABELS" | grep -iq "patch"; then
+              BUMP_TYPE="patch"
+            elif echo "$TITLE" | grep -iE '^(feat!|breaking)(\(.*\))?:'; then
+              BUMP_TYPE="major"
+            elif echo "$TITLE" | grep -iE '^feat(\(.*\))?:'; then
+              BUMP_TYPE="minor"
+            fi
+          fi
+          echo "Selected bump level: $BUMP_TYPE"
+          uv run python scripts/bump_version.py "$BUMP_TYPE"
+
+      - name: Commit and push tag
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml src/devtul/main.py src/devtul/__init__.py
+          git commit -m "[skip ci] chore(release): bump version to ${{ steps.bump.outputs.tag_name }}"
+          git push origin master
+          git tag "${{ steps.bump.outputs.tag_name }}"
+          git push origin "${{ steps.bump.outputs.tag_name }}"
+
+  build-wheel:
+    name: Build Python Wheel & Sdist
+    needs: bump-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump-version.outputs.tag_name }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Build wheel and sdist
+        run: uv build
+
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-artifacts
+          path: dist/*
+          if-no-files-found: error
+
+  build-windows-exe:
+    name: Build Windows Executable
+    needs: bump-version
+    runs-on: windows-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump-version.outputs.tag_name }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install build dependencies
+        run: uv sync --all-extras --group dev
+
+      - name: Build Windows binary with PyInstaller
+        run: uv run pyinstaller devtul.spec
+
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binary
+          path: dist/devtul.exe
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [bump-version, build-wheel, build-windows-exe]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download wheel artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wheel-artifacts
+          path: release_assets
+
+      - name: Download windows binary
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-binary
+          path: release_assets
+
+      - name: Publish Release to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.bump-version.outputs.tag_name }}
+          name: Release ${{ needs.bump-version.outputs.tag_name }}
+          generate_release_notes: true
+          files: release_assets/*

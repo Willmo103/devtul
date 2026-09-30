@@ -1,0 +1,1 @@
+before merging this I want to create a CICD pipeline that will bump the version and create a release when pr are merged back into master

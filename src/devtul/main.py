@@ -2,7 +2,25 @@
 DevTul - A collection of developer tools for working with git repositories.
 """
 
-__version__ = "0.1.5"
+try:
+    from importlib.metadata import version as _pkg_version
+
+    __version__ = _pkg_version("devtul")
+except Exception:
+    __version__ = "0.1.13"
+
+import sys
+
+# Ensure UTF-8 output encoding across Windows terminals and packaged binaries
+if sys.platform == "win32":
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8")
+        if hasattr(sys.stderr, "reconfigure"):
+            sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 import typer
 
 from .commands import (

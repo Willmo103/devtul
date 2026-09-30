@@ -68,13 +68,13 @@ graph TD
      ```powershell
      uv run pytest
      ```
-2. **Failure Logging:**
+2. **Failure & Progression Logging:**
    - If tests fail or linting reports errors, pipe the full error output into the session's `.artifacts/` directory:
      ```powershell
      uv run pytest > .artifacts/<session-slug>/impl_test_run_1.log 2>&1
      ```
-   - Increment the run index for subsequent test runs (`impl_test_run_2.log`, etc.) until all tests pass.
-   - Document the root causes and remediation in the session's `walkthrough.md`.
+   - **Mandatory Incrementing Policy:** Every subsequent test attempt MUST increment the run index (`impl_test_run_2.log`, `impl_test_run_3.log`, etc.). NEVER overwrite an existing test log.
+   - Document the root causes and remediation progression in the session's `walkthrough.md`.
 
 ---
 
@@ -89,7 +89,7 @@ User Acceptance Testing validates that the user's real-world CLI commands and wo
      ```powershell
      .artifacts/<session-slug>/uat_test_run_1.log
      ```
-   - If multiple UAT passes occur, record as `uat_test_run_2.log`, etc.
+   - **Mandatory Incrementing Policy:** If multiple UAT passes occur (due to bug discovery, UI adjustments, or subsequent features), each subsequent run MUST increment the run number (`uat_test_run_2.log`, `uat_test_run_3.log`, etc.). NEVER overwrite an existing UAT log file.
 3. **Verification Checklist:**
    - [ ] Path tools auto-detect git vs non-git directories cleanly.
    - [ ] Internal `.git/` files are excluded from `--no-git` output.
