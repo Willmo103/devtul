@@ -7,7 +7,7 @@ try:
 
     __version__ = _pkg_version("devtul")
 except Exception:
-    __version__ = "0.4.0"
+    __version__ = "0.5.0"
 
 import sys
 
