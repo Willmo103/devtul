@@ -13,4 +13,5 @@ wheels/
 !devtul.spec
 .vscode/settings.json
 temp/
+site/
 .hosts/hosts.md

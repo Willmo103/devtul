@@ -1,0 +1,3 @@
+for now I think I just want to keep track of the possible development candidates none of them feel especially important to add right now.
+
+I want to instead create a suite of documentat ion for my sort of random ass tools so taht I and others can remember all the cool shit this package includes (and maybe some **good** examples))
