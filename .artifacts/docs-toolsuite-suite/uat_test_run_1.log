@@ -1,0 +1,46 @@
+=== DevTul User Acceptance Testing (UAT) Execution Log (Run 1) ===
+Timestamp: 2026-10-01T20:17:40Z
+
+[Test 1: Documentation Build (Strict Mode)]
+Command: uv run --extra docs mkdocs build --strict
+Result: Success (0.14 seconds, 0 warnings, 0 broken links)
+Output:
+INFO    -  Cleaning site directory
+INFO    -  Building documentation to directory: C:\src\devtul\site
+INFO    -  Documentation built in 0.14 seconds
+
+[Test 2: Top-level Help & Command Matrix]
+Command: uv run dt --help
+Result: Success (Exit Code: 0)
+Verified Commands Registered:
+- tree, md, ls, find, find-folder, version, cp, rpr, ppdf, print-pdf, str, strings, empty, new, db, reporter
+
+[Test 3: Standalone Script Entrypoints]
+Command: uv run dt-rpr --help; uv run dt-ppdf --help; uv run dt-str --help
+Result: Success (Exit Code: 0)
+Verified options:
+- dt-rpr: -f/--file, -fmt/--format, -dx/--docx, --md, -m/--match, -e/--exclude, -d/--dest, --depth, --empty, --filemeta, --git, -ni/--no-ignore, --debug
+- dt-ppdf: -p/--pages, -H/--head, -T/--tail, -g/--grep, -s/--sed, -n/--numbered, -l/--lines-with
+- dt-str: -m/--min-len, -H/--head, -T/--tail, -g/--grep, -s/--sed, -N/--numbered, -l/--lines-with
+
+[Test 4: Version Command]
+Command: uv run dt version
+Result: Success (Exit Code: 0)
+Output: 0.5.0
+
+[Test 5: String Inspection Pipeline]
+Command: uv run dt str pyproject.toml -g mkdocs
+Result: Success (Exit Code: 0)
+Output:
+    "mkdocs>=1.6.1",
+    "mkdocs>=1.6.1",
+
+[Test 6: Filtered Tree Output with UnixPathMatcher]
+Command: uv run dt tree tests -m *pdf*
+Result: Success (Exit Code: 0)
+Output:
+C:/src/devtul/tests/
+└── test_pdf.py
+
+[Summary]
+All documentation assets build strictly without warnings. All CLI commands, options, standalone entrypoints, and string stream pipelines function as documented.

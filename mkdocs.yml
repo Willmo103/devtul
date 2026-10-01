@@ -1,0 +1,28 @@
+site_name: DevTul Documentation
+site_description: A modular, high-performance developer CLI toolsuite for git repositories and codebases.
+repo_url: https://github.com/Willmo103/devtul
+repo_name: Willmo103/devtul
+
+theme:
+  name: mkdocs
+  highlightjs: true
+  hljs_languages:
+    - python
+    - powershell
+    - bash
+    - yaml
+    - json
+
+nav:
+  - Overview: index.md
+  - Commands:
+      - "Multi-Format Representation (dt rpr)": commands/repr.md
+      - "Stream & PDF Inspection (dt str, dt ppdf)": commands/strings.md
+      - "Discovery & Listing (dt tree, dt ls, dt find)": commands/inspection.md
+      - "Database Management (dt db)": commands/database.md
+      - "Template Scaffolding (dt new)": commands/templates.md
+      - "Visual Repository Reports (dt reporter)": commands/reporter.md
+      - "File Copying & Archiving (dt cp)": commands/copy.md
+  - Guides:
+      - "Unix Path Filtering Engine": guides/path-filtering.md
+  - Roadmap: roadmap.md
