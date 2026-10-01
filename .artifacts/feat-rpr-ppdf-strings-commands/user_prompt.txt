@@ -1,0 +1,15 @@
+make an appropriate bump to the uv version and add a last commit. build the executables locally, and the go ahead and merge it. 
+
+Afterwards Open a new one and lets start adding shit.
+--- 
+I am going to reference several documents below but I want you to consult last turn's plan review for some of my notes as well, but, i wont lie to you, this next batch gon be some wildly unlrelated things:
+
+## String Stuff
+- `rpr` command -- This is the migration away from `md` as the only way to output a selection of flattened files. I want to incorperate a docx format @[.agents/docs/to_docx_processor.py] this is something that I am using already to format my markdown into docx so we can do a docx translation from the md. IDK how to get a PDF but I assume that both MD and docx will be able to be formatted into pdf with some library.
+- `ppdf`,`print-pdf` -- I want to be able to basically `cat` a pdf file using pdfplumber. maybe adding some additional options to this command and other StringCommands (?) by default like a --head <int> --tail <int> --grep <PATTERN: str> --sed? <SOME SHIT idk what sed does but I know that shit is POWERFUL> --numbered (would print line numbers) --lines-with <TERM> displays the line number, line text, and the term hilighted using rich
+- `str`,`strings` -- I want to have strings like in linux/unix
+---
+
+Thats about it for now. but that is a lot.
+
+I thought of one more command, this is a sub-command of the rpr command; 'clone' it pulls a repo and runs dt on it. it can be saved to a specific location if wanted, but if none is passed it uses a temp folder.
