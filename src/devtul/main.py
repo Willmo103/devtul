@@ -24,6 +24,7 @@ if sys.platform == "win32":
 import typer
 
 from .commands import (
+    copy,
     db_cli,
     empty,
     find,
@@ -32,8 +33,10 @@ from .commands import (
     ls,
     markdown,
     new_cli,
+    print_pdf_command,
+    rpr_command,
+    strings_command,
     tree,
-    copy,
 )
 from .core import reporter_app
 
@@ -70,9 +73,26 @@ app.add_typer(
     no_args_is_help=True,
 )
 app.command(name="cp", help="Copy files from one location to another")(copy)
+app.command(
+    name="rpr",
+    help="Generate repository representation (md, docx, text) or clone remote repo",
+)(rpr_command)
+app.command(name="ppdf", help="Extract and display text from PDF files with stream filtering")(
+    print_pdf_command
+)
+app.command(
+    name="print-pdf", help="Extract and display text from PDF files with stream filtering"
+)(print_pdf_command)
+app.command(name="str", help="Extract printable strings from binary or text files")(
+    strings_command
+)
+app.command(name="strings", help="Extract printable strings from binary or text files")(
+    strings_command
+)
 
 
 def main():
+
     """Entry point for the CLI."""
     app()
 
