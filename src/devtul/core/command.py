@@ -7,10 +7,12 @@ and FileCommand with centralized, Unix-like path gathering, filtering, and debug
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
+import re
 import sys
 import time
 from typing import Any, Callable, List, Optional, Tuple
 
+from rich.console import Console
 import typer
 
 from devtul.core.constants import FileContentStatus
@@ -26,6 +28,8 @@ from devtul.core.models import (
     FilePath,
     FileResult,
     FilterMetrics,
+    StringCommandResult,
+    StringFilterOptions,
 )
 from devtul.core.path_matcher import UnixPathMatcher
 
@@ -179,3 +183,132 @@ class FileCommand(BaseCommand):
             )
 
         return filtered, metrics
+
+
+class StringCommand(BaseCommand):
+    """
+    Abstract base class for string, text, and stream-processing commands in DevTul.
+    Provides standardized line filtering (head, tail, grep, sed, numbered, lines_with)
+    and Rich terminal output.
+    """
+
+    @staticmethod
+    def apply_sed(text: str, expr: str) -> str:
+        """
+        Apply a sed-like substitution expression: s/pattern/replacement/[flags]
+        Supports custom delimiters such as s#pat#repl#g or s|pat|repl|i.
+        Supported flags:
+          'g': replace all occurrences (without 'g', replaces only the first occurrence).
+          'i': case-insensitive matching.
+        """
+        if not expr or not expr.startswith("s") or len(expr) < 4:
+            return text
+
+        delimiter = expr[1]
+        escaped_delim = re.escape(delimiter)
+        pattern_str = (
+            f"^s{escaped_delim}((?:(?!{escaped_delim}).|\\\\.)*)"
+            f"{escaped_delim}((?:(?!{escaped_delim}).|\\\\.)*)"
+            f"{escaped_delim}([a-zA-Z]*)$"
+        )
+        match = re.match(pattern_str, expr)
+        if not match:
+            parts = expr.split(delimiter)
+            if len(parts) >= 3:
+                find_str = parts[1]
+                replace_str = parts[2]
+                flags_str = parts[3] if len(parts) > 3 else ""
+            else:
+                return text
+        else:
+            find_str = match.group(1).replace(f"\\{delimiter}", delimiter)
+            replace_str = match.group(2).replace(f"\\{delimiter}", delimiter)
+            flags_str = match.group(3)
+
+        regex_flags = 0
+        if "i" in flags_str.lower():
+            regex_flags |= re.IGNORECASE
+
+        count = 0 if "g" in flags_str.lower() else 1
+
+        try:
+            return re.sub(find_str, replace_str, text, count=count, flags=regex_flags)
+        except re.error:
+            if count == 1:
+                return text.replace(find_str, replace_str, 1)
+            return text.replace(find_str, replace_str)
+
+    def process_lines(
+        self,
+        lines: List[str],
+        options: StringFilterOptions,
+    ) -> List[str]:
+        """
+        Filters and transforms a list of lines using StringFilterOptions.
+        Pipeline order:
+          1. grep filter
+          2. lines_with filter
+          3. sed substitution
+          4. head slice
+          5. tail slice
+          6. numbered formatting
+        """
+        result = list(lines)
+
+        # 1. Grep filtering
+        if options.grep:
+            try:
+                rx = re.compile(options.grep)
+                result = [line for line in result if rx.search(line)]
+            except re.error:
+                result = [line for line in result if options.grep in line]
+
+        # 2. Lines-with filtering
+        if options.lines_with:
+            lw_lower = options.lines_with.lower()
+            result = [line for line in result if lw_lower in line.lower()]
+
+        # 3. Sed substitution
+        if options.sed:
+            result = [self.apply_sed(line, options.sed) for line in result]
+
+        # 4. Head slicing
+        if options.head is not None and options.head >= 0:
+            result = result[: options.head]
+
+        # 5. Tail slicing
+        if options.tail is not None and options.tail >= 0:
+            if options.tail == 0:
+                result = []
+            else:
+                result = result[-options.tail:]
+
+        # 6. Line numbering
+        if options.numbered:
+            result = [f"{i + 1:6d}  {line}" for i, line in enumerate(result)]
+
+        return result
+
+    def render_console(
+        self,
+        lines: List[str],
+        options: StringFilterOptions,
+        console: Optional[Console] = None,
+    ) -> None:
+        """
+        Render lines to console with Rich highlighting if lines_with is set.
+        """
+        if console is None:
+            console = Console()
+
+        if options.lines_with:
+            from rich.text import Text
+
+            term = options.lines_with
+            for line in lines:
+                text = Text(line)
+                text.highlight_regex(re.escape(term), style="bold yellow on #2e3440")
+                console.print(text)
+        else:
+            for line in lines:
+                console.print(line)

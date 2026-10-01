@@ -1,0 +1,67 @@
+================================================================================
+DevTul Feature Acceptance Test Run 1 (UAT)
+Session: feat-rpr-ppdf-strings-commands
+Target Commands: dt rpr, dt rpr clone, dt ppdf, dt str, StringCommand pipeline
+Date: 2026-10-01
+================================================================================
+
+[TEST 1] CLI Help & Registration Verification
+--------------------------------------------------------------------------------
+Command: uv run dt --help
+Result: SUCCESS (Exit Code 0)
+Verified commands present:
+- rpr: Generate repository representation (md, docx, text) or clone remote repo
+- ppdf: Extract and display text from PDF files with stream filtering
+- print-pdf: Alias for ppdf
+- str: Extract printable strings from binary or text files
+- strings: Alias for str
+
+Command: uv run dt-rpr --help; uv run dt-ppdf --help; uv run dt-str --help
+Result: SUCCESS (Exit Code 0)
+Verified standalone script entry points installed in pyproject.toml:
+- dt-rpr
+- dt-ppdf
+- dt-str
+
+[TEST 2] 'dt rpr' Multi-Format Representation Generation
+--------------------------------------------------------------------------------
+Command: uv run dt rpr . -m "src/devtul/main.py" -f .artifacts/feat-rpr-ppdf-strings-commands/test_repo.docx
+Result: SUCCESS (Exit Code 0)
+Output: Successfully generated Word representation: .artifacts\feat-rpr-ppdf-strings-commands\test_repo.docx
+Verification:
+- File format: Valid docx (verified by python-docx Document parser)
+- Structure: 112 paragraphs, 3 tables (metadata, directory tree, code blocks with shading and borders)
+
+Command: uv run dt rpr . -m "src/devtul/main.py" -f .artifacts/feat-rpr-ppdf-strings-commands/test_repo.md
+Result: SUCCESS (Exit Code 0)
+Output: Successfully wrote markdown representation to .artifacts\feat-rpr-ppdf-strings-commands\test_repo.md
+
+[TEST 3] 'dt rpr clone' Remote Repository Cloner
+--------------------------------------------------------------------------------
+Command: uv run dt rpr clone <REPO_URL> -f .artifacts/feat-rpr-ppdf-strings-commands/cloned_test.docx
+Result: SUCCESS (Exit Code 0)
+Output:
+- Cloning '<REPO_URL>' into 'C:\Users\Will\AppData\Local\Temp\dt_clone_...'
+- Successfully generated Word representation: .artifacts\feat-rpr-ppdf-strings-commands\cloned_test.docx
+- Cleaning up temporary clone directory...
+
+[TEST 4] 'dt str' / 'dt strings' Extraction and Filtering Pipeline
+--------------------------------------------------------------------------------
+Command: uv run dt str src/devtul/main.py --head 10 --numbered
+Result: SUCCESS (Exit Code 0)
+Output: Lines 1..10 extracted, line numbered with 6-char width formatting.
+
+Command: uv run dt str src/devtul/main.py --grep "app.command" --sed "s/app.command/REGISTER/g" --numbered
+Result: SUCCESS (Exit Code 0)
+Output: Successfully filtered lines containing pattern, substituted with 'REGISTER', and numbered.
+
+[TEST 5] 'dt ppdf' / 'dt print-pdf' Terminal PDF Text Inspection
+--------------------------------------------------------------------------------
+Command: uv run dt ppdf .artifacts/feat-rpr-ppdf-strings-commands/sample.pdf
+Result: SUCCESS (Exit Code 0)
+Pipeline: pdfplumber extraction -> StringCommand.process_lines() -> Rich console rendering.
+
+[SUMMARY]
+All 5 User Acceptance Tests passed with 100% compliance.
+Flake8 lint: 0 errors.
+Pytest suite: 47 passed in 1.82s.

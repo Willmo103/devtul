@@ -688,3 +688,51 @@ class FindResult(FileCommandResult):
             cnt = getattr(m, "content", "")
             lines.append(f"{rel}:{ln}: {cnt}")
         return "\n".join(lines)
+
+
+class StringFilterOptions(BaseModel):
+    """Configuration options for StringCommand line and stream filtering."""
+
+    head: Optional[int] = None
+    tail: Optional[int] = None
+    grep: Optional[str] = None
+    sed: Optional[str] = None
+    numbered: bool = False
+    lines_with: Optional[str] = None
+
+
+class StringCommandResult(CommandResult):
+    """Output model for string-based commands."""
+
+    command_name: str = "string"
+    lines: list[str] = Field(default_factory=list)
+    total_lines: int = 0
+
+    def to_speech_summary(self) -> str:
+        count = len(self.lines)
+        line_word = "line" if count == 1 else "lines"
+        return f"DevTul processed {count} {line_word}."
+
+    def render(self, format: str = "text") -> str:
+        if format == "json":
+            return self.model_dump_json(indent=2)
+        return "\n".join(self.lines)
+
+
+class ReprResult(FileCommandResult):
+    """Output model for the dt rpr command."""
+
+    command_name: str = "rpr"
+    format: str = "md"
+    content: Union[str, bytes] = ""
+    output_file: Optional[Path] = None
+
+    def to_speech_summary(self) -> str:
+        count = len(self.files)
+        file_word = "file" if count == 1 else "files"
+        return f"DevTul generated {self.format.upper()} representation for {count} {file_word}."
+
+    def render(self, format: str = "text") -> str:
+        if isinstance(self.content, str):
+            return self.content
+        return f"<Binary {self.format.upper()} content: {len(self.content)} bytes>"

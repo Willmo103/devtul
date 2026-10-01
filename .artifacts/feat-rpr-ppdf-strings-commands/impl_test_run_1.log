@@ -1,0 +1,58 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-9.0.2, pluggy-1.6.0 -- C:\src\devtul\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\src\devtul
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.12.0
+collecting ... collected 47 items
+
+tests/test_command_io_models.py::test_base_command_docstring_synthesis PASSED [  2%]
+tests/test_command_io_models.py::test_command_result_speech_summary PASSED [  4%]
+tests/test_command_io_models.py::test_file_command_result_rendering_and_speech PASSED [  6%]
+tests/test_command_io_models.py::test_tree_result_speech_and_render PASSED [  8%]
+tests/test_command_io_models.py::test_listing_result_formats PASSED      [ 10%]
+tests/test_command_io_models.py::test_find_result_speech_and_render PASSED [ 12%]
+tests/test_command_io_models.py::test_file_command_pipeline_in_temp_dir PASSED [ 14%]
+tests/test_docx_repr.py::test_docx_processor_frontmatter PASSED          [ 17%]
+tests/test_docx_repr.py::test_docx_processor_conversion PASSED           [ 19%]
+tests/test_docx_repr.py::test_rpr_command_formats PASSED                 [ 21%]
+tests/test_docx_repr.py::test_rpr_command_filter PASSED                  [ 23%]
+tests/test_docx_repr.py::test_rpr_clone_command PASSED                   [ 25%]
+tests/test_migration_and_paths.py::test_is_git_repo PASSED               [ 27%]
+tests/test_migration_and_paths.py::test_ignore_parts_excludes_git_but_keeps_gitignore PASSED [ 29%]
+tests/test_migration_and_paths.py::test_build_tree_structure_cross_platform PASSED [ 31%]
+tests/test_migration_and_paths.py::test_file_path_model PASSED           [ 34%]
+tests/test_migration_and_paths.py::test_base_file_stat_model PASSED      [ 36%]
+tests/test_migration_and_paths.py::test_base_text_file_and_lines PASSED  [ 38%]
+tests/test_migration_and_paths.py::test_ignore_relative_to_root_in_temp_dir PASSED [ 40%]
+tests/test_migration_and_paths.py::test_piper_engine_config PASSED       [ 42%]
+tests/test_path_matcher.py::test_normalize_pattern_cross_platform PASSED [ 44%]
+tests/test_path_matcher.py::test_matcher_exact_windows_path PASSED       [ 46%]
+tests/test_path_matcher.py::test_matcher_directory_trailing_slash PASSED [ 48%]
+tests/test_path_matcher.py::test_matcher_bare_directory_component PASSED [ 51%]
+tests/test_path_matcher.py::test_matcher_wildcard_patterns PASSED        [ 53%]
+tests/test_path_matcher.py::test_matcher_globstar PASSED                 [ 55%]
+tests/test_path_matcher.py::test_debug_callback_logging PASSED           [ 57%]
+tests/test_path_matcher.py::test_matches_unix_pattern_helper PASSED      [ 59%]
+tests/test_pdf.py::test_parse_page_range PASSED                          [ 61%]
+tests/test_pdf.py::test_print_pdf_command_execution PASSED               [ 63%]
+tests/test_string_command.py::test_apply_sed_basic PASSED                [ 65%]
+tests/test_string_command.py::test_apply_sed_global_flag PASSED          [ 68%]
+tests/test_string_command.py::test_apply_sed_case_insensitive PASSED     [ 70%]
+tests/test_string_command.py::test_apply_sed_custom_delimiters PASSED    [ 72%]
+tests/test_string_command.py::test_apply_sed_invalid PASSED              [ 74%]
+tests/test_string_command.py::test_process_lines_grep PASSED             [ 76%]
+tests/test_string_command.py::test_process_lines_lines_with PASSED       [ 78%]
+tests/test_string_command.py::test_process_lines_head_and_tail PASSED    [ 80%]
+tests/test_string_command.py::test_process_lines_numbered PASSED         [ 82%]
+tests/test_string_command.py::test_process_lines_combined_pipeline PASSED [ 85%]
+tests/test_strings_cmd.py::test_extract_printable_strings PASSED         [ 87%]
+tests/test_strings_cmd.py::test_strings_command_execution PASSED         [ 89%]
+tests/test_version_bump.py::test_parse_semver_valid PASSED               [ 91%]
+tests/test_version_bump.py::test_parse_semver_invalid PASSED             [ 93%]
+tests/test_version_bump.py::test_calculate_next_version PASSED           [ 95%]
+tests/test_version_bump.py::test_update_files_in_temp_dir PASSED         [ 97%]
+tests/test_version_bump.py::test_cli_show PASSED                         [100%]
+
+============================= 47 passed in 1.82s ==============================
