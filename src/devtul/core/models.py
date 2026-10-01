@@ -3,7 +3,14 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, computed_field, model_serializer
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    field_serializer,
+    model_serializer,
+)
 
 from devtul.core.constants import FileContentStatus
 
@@ -501,3 +508,183 @@ class FileResultsModel(BaseModel):
     root_path: str = Field(..., description="Root path for the scan")
     total_files: int = Field(..., description="Total number of files scanned")
     scanned_at: str = Field(..., description="Timestamp of when the scan was performed")
+
+
+class FilterMetrics(BaseModel):
+    """Execution metrics for file scanning and filtering operations."""
+
+    total_scanned: int = 0
+    matched_count: int = 0
+    excluded_count: int = 0
+    empty_count: int = 0
+    duration_seconds: float = 0.0
+
+
+class FileFilterOptions(BaseModel):
+    """Standardized input options for file gathering and filtering."""
+
+    path: Path = Field(default_factory=Path.cwd)
+    match: list[str] = Field(default_factory=list)
+    exclude: list[str] = Field(default_factory=list)
+    git: bool = True
+    include_empty: bool = False
+    no_ignore: bool = False
+    debug: bool = False
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+class CommandResult(BaseModel):
+    """Base model for structured command execution outputs."""
+
+    command_name: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    success: bool = True
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def render(self, format: str = "text") -> str:
+        """Render the command result in the specified format."""
+        if format == "json":
+            return self.model_dump_json(indent=2)
+        return str(self)
+
+    def to_speech_summary(self) -> str:
+        """Produce a natural language summary suitable for TTS synthesis."""
+        status = "successfully" if self.success else "with errors"
+        return f"Command {self.command_name} finished {status}."
+
+
+class FileCommandResult(CommandResult):
+    """Structured output for repository and directory file commands."""
+
+    root_path: FilePath
+    files: list[Any] = Field(default_factory=list)
+    metrics: FilterMetrics = Field(default_factory=FilterMetrics)
+
+    @field_serializer("files", mode="plain", check_fields=False)
+    def serialize_files(self, files: list[Any]) -> list[Any]:
+        serialized = []
+        for f in files:
+            if hasattr(f, "relative_path"):
+                serialized.append(
+                    {
+                        "full_path": str(getattr(f, "full_path", "")),
+                        "relative_path": getattr(f, "relative_path", Path()).as_posix(),
+                        "size": getattr(f, "size", 0),
+                        "content_status": (
+                            getattr(f, "content_status", "").value
+                            if hasattr(getattr(f, "content_status", ""), "value")
+                            else str(getattr(f, "content_status", ""))
+                        ),
+                    }
+                )
+            elif hasattr(f, "model_dump"):
+                serialized.append(f.model_dump())
+            else:
+                serialized.append(str(f))
+        return serialized
+
+    def to_speech_summary(self) -> str:
+        count = len(self.files)
+        file_word = "file" if count == 1 else "files"
+        return f"DevTul {self.command_name} processed {count} {file_word} in {self.root_path.name}."
+
+    def render(self, format: str = "text") -> str:
+        if format == "json":
+            return self.model_dump_json(indent=2)
+        if format == "yaml":
+            return yaml.dump(self.model_dump(mode="json"), sort_keys=False)
+        return "\n".join(
+            getattr(f, "relative_path", Path(str(f))).as_posix()
+            if hasattr(f, "relative_path")
+            else str(f)
+            for f in self.files
+        )
+
+
+class TreeResult(FileCommandResult):
+    """Output model for the dt tree command."""
+
+    tree_text: str = ""
+
+    def to_speech_summary(self) -> str:
+        count = len(self.files)
+        file_word = "file" if count == 1 else "files"
+        return f"DevTul tree rendered {count} {file_word} in {self.root_path.name}."
+
+    def render(self, format: str = "text") -> str:
+        if format in ["tree", "text"]:
+            return self.tree_text
+        return super().render(format=format)
+
+
+class MarkdownResult(FileCommandResult):
+    """Output model for the dt md command."""
+
+    header: Optional[RepoMarkdownHeader] = None
+    markdown_text: str = ""
+
+    def to_speech_summary(self) -> str:
+        count = len(self.files)
+        file_word = "file" if count == 1 else "files"
+        return f"DevTul markdown generated repository documentation for {count} {file_word}."
+
+    def render(self, format: str = "text") -> str:
+        if format in ["md", "markdown", "text"]:
+            return self.markdown_text
+        return super().render(format=format)
+
+
+class ListingResult(FileCommandResult):
+    """Output model for the dt ls command."""
+
+    relative_paths: list[str] = Field(default_factory=list)
+
+    def to_speech_summary(self) -> str:
+        count = len(self.relative_paths)
+        file_word = "file" if count == 1 else "files"
+        return f"DevTul list found {count} {file_word}."
+
+    def render(self, format: str = "text") -> str:
+        if format == "csv":
+            import csv
+            import io
+
+            output = io.StringIO()
+            writer = csv.writer(output, lineterminator="\n")
+            writer.writerow(["path"])
+            for p in self.relative_paths:
+                writer.writerow([p])
+            return output.getvalue().strip()
+        if format == "json":
+            import json
+
+            return json.dumps(self.relative_paths, indent=2)
+        if format == "yaml":
+            return yaml.dump(self.relative_paths, sort_keys=False)
+        return "\n".join(self.relative_paths)
+
+
+class FindResult(FileCommandResult):
+    """Output model for the dt find command."""
+
+    term: str = ""
+    matches: list[Any] = Field(default_factory=list)
+
+    def to_speech_summary(self) -> str:
+        count = len(self.matches)
+        occ_word = "match" if count == 1 else "matches"
+        return f"DevTul find located {count} {occ_word} for '{self.term}'."
+
+    def render(self, format: str = "text") -> str:
+        if format == "json":
+            return self.model_dump_json(indent=2)
+        lines = []
+        for m in self.matches:
+            rel = getattr(m, "relative_path", "")
+            ln = getattr(m, "line_number", "")
+            cnt = getattr(m, "content", "")
+            lines.append(f"{rel}:{ln}: {cnt}")
+        return "\n".join(lines)

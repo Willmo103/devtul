@@ -33,6 +33,7 @@ This rule specifies the exact structure, directory hierarchy, and naming convent
   - Architecture & design decisions.
   - Phased task checklist with markdown checkboxes (`- [ ]`, `- [x]`).
   - Verification & acceptance criteria.
+- **Mandatory Presentation via IDE Artifact Tool:** Whenever an implementation plan is drafted for review, the agent must save it in `.artifacts/<session-slug>/implementation_plan.md` AND *always* present it to the user as an interactive IDE artifact in `<appDataDir>\brain\<conversation-id>/implementation_plan.md` using the `write_to_file` tool with `ArtifactMetadata` (`RequestFeedback: true`, `UserFacing: true`). This provides the user with an interactive review panel and 'Proceed' action directly in the IDE interface.
 
 ### 3. `user_feedback_<n>.md`
 - When a user responds to an implementation plan or turn with critique, corrections, or adjustments, save the feedback verbatim to `user_feedback_1.md`.
