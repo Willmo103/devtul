@@ -1,5 +1,5 @@
 """
-Tree command for devtul - generates tree structures from git repositories.
+Tree command for devtul - generates tree structures from git repositories or directories.
 """
 
 from pathlib import Path
@@ -7,16 +7,92 @@ from typing import List, Optional
 
 import typer
 
-from devtul.core.file_utils import (build_tree_structure, gather_all_paths,
-                                    try_gather_all_git_tracked_paths)
-from devtul.core.models import FileResult
+from devtul.core.command import FileCommand
+from devtul.core.file_utils import build_tree_structure
+from devtul.core.models import FileFilterOptions, FilePath, TreeResult
 from devtul.core.utils import write_to_file
+
+
+class TreeCommand(FileCommand):
+    """Command that creates a visual tree representation of repository files."""
+
+    name = "tree"
+    help = "Generate a tree structure from git tracked files or directory files."
+
+    @property
+    def usage(self) -> str:
+        return "dt tree [PATH] [OPTIONS]"
+
+    @property
+    def examples(self) -> list[str]:
+        return [
+            "dt tree ./my-repo",
+            'dt tree ./my-repo --match "*.py" --exclude "tests/"',
+            "dt tree ./my-repo -e .\\tests\\test_migration_and_paths.py",
+            "dt tree ./my-repo --no-git -f tree_output.txt",
+            "dt tree --debug",
+        ]
+
+    def execute(
+        self,
+        path: Path = Path.cwd().resolve(),
+        file: Optional[Path] = None,
+        match: List[str] = [],
+        exclude: List[str] = [],
+        include_empty: bool = False,
+        git: bool = True,
+        no_ignore: bool = False,
+        debug: bool = False,
+    ) -> Optional[TreeResult]:
+        if not path.exists():
+            typer.echo(f"Error: Path {path} does not exist", err=True)
+            raise typer.Exit(1)
+
+        options = FileFilterOptions(
+            path=path,
+            match=match,
+            exclude=exclude,
+            git=git,
+            include_empty=include_empty,
+            no_ignore=no_ignore,
+            debug=debug,
+        )
+
+        filtered_results, metrics = self.gather_and_filter_files(options)
+        if not filtered_results:
+            typer.echo("No files match the specified criteria", err=True)
+            return None
+
+        filtered_file_strings = [res.relative_path.as_posix() for res in filtered_results]
+        tree_output = build_tree_structure(filtered_file_strings, parent=path.as_posix())
+
+        result = TreeResult(
+            command_name=self.name,
+            root_path=FilePath.from_path(path),
+            files=filtered_results,
+            metrics=metrics,
+            tree_text=tree_output,
+        )
+
+        # Output handling
+        if file is None:
+            print(tree_output)
+        else:
+            output_file = file
+            if file == Path():
+                output_file = Path.cwd() / "file_tree.md"
+            write_to_file(tree_output, output_file)
+
+        return result
+
+
+_tree_cmd = TreeCommand()
 
 
 def tree(
     path: Path = typer.Argument(
         Path().cwd().resolve(),
-        help="Path to the git repository",
+        help="Path to the repository or directory",
         callback=lambda v: Path(v).resolve(),
     ),
     file: Optional[Path] = typer.Option(None, "-f", "--file", help="Output file path"),
@@ -38,79 +114,26 @@ def tree(
     git: bool = typer.Option(
         True, "--git/--no-git", help="Look for git tracked files or all files"
     ),
+    no_ignore: bool = typer.Option(
+        False, "--no-ignore", help="Do not apply default ignore patterns"
+    ),
+    debug: bool = typer.Option(
+        False, "--debug", help="Print debug information for pattern matching"
+    ),
 ):
-    """
-    Generate a tree structure from git tracked files.
+    return _tree_cmd.execute(
+        path=path,
+        file=file,
+        match=match,
+        exclude=exclude,
+        include_empty=include_empty,
+        git=git,
+        no_ignore=no_ignore,
+        debug=debug,
+    )
 
-    Creates a visual tree representation of all files tracked by git in the specified repository.
-    Uses the same tree characters as standard tree commands (├── └── │).
 
-    Examples:
-        tree ./my-repo
-        tree ./my-repo --match "*.py" --match "*.md" --print
-        tree ./my-repo --sub-dir src -f tree_output.txt
-    """
-    if not path.exists():
-        typer.echo(f"Error: Path {path} does not exist", err=True)
-        raise typer.Exit(1)
-
-    # 1. Gather Paths
-    if git:
-        paths = try_gather_all_git_tracked_paths(path)
-    else:
-        paths = gather_all_paths(path)
-
-    # 2. Filter via FileResult pipeline
-    if not git:  # Should check override ignore logic similar to ls?
-        from devtul.core.file_utils import filter_gathered_paths_by_default_ignores
-
-        paths = filter_gathered_paths_by_default_ignores(paths, root_path=path)
-
-    file_results = []
-    for p in paths:
-        if p.is_file():
-            file_results.append(FileResult(p, path))
-
-    filtered_files = []
-    # Reuse filtering logic (this should ideally be in a shared function now, but keeping inline per command for now)
-    for res in file_results:
-        if match:
-            import fnmatch
-            if not any(fnmatch.fnmatch(res.relative_path.as_posix(), m) for m in match):
-                continue
-        if exclude:
-            import fnmatch
-            if any(fnmatch.fnmatch(res.relative_path.as_posix(), e) for e in exclude):
-                continue
-
-        # Check empty
-        from devtul.core.constants import FileContentStatus
-        if not include_empty:
-            if res.content_status == FileContentStatus.EMPTY:
-                continue
-
-        filtered_files.append(res.relative_path.as_posix())  # tree needs relative strings
-
-    if not filtered_files:
-        typer.echo("No files match the specified criteria", err=True)
-        # raise typer.Exit(1)
-        return
-
-    # Build tree structure using the final filtered list
-    # The helper expects paths relative to parent or just a list of paths?
-    # build_tree_structure takes List[str].
-    tree_output = build_tree_structure(filtered_files, parent=path.as_posix())
-
-    # Determine output behavior
-    if file is None:
-        print(tree_output)
-        return
-    output_file = file
-    if file is not None and file == Path():
-        output_file = Path.cwd() / "file_tree.md"
-
-    # Write output
-    write_to_file(tree_output, output_file)
+tree.__doc__ = _tree_cmd.get_formatted_help()
 
 
 def entry():

@@ -1,0 +1,85 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.0, pytest-8.3.4, pluggy-1.5.0 -- C:\src\devtul\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\src\devtul
+configfile: pyproject.toml
+collecting ... collected 28 items
+
+tests/test_command_io_models.py::test_base_command_docstring_synthesis PASSED [  3%]
+tests/test_command_io_models.py::test_command_result_speech_summary PASSED [  7%]
+tests/test_command_io_models.py::test_file_command_result_rendering_and_speech FAILED [ 10%]
+tests/test_command_io_models.py::test_tree_result_speech_and_render PASSED [ 14%]
+tests/test_command_io_models.py::test_listing_result_formats FAILED      [ 17%]
+tests/test_command_io_models.py::test_find_result_speech_and_render PASSED [ 21%]
+tests/test_command_io_models.py::test_file_command_pipeline_in_temp_dir PASSED [ 25%]
+tests/test_migration_and_paths.py::test_is_git_repo PASSED              [ 28%]
+tests/test_migration_and_paths.py::test_ignore_parts_excludes_git_but_keeps_gitignore PASSED [ 32%]
+tests/test_migration_and_paths.py::test_build_tree_structure_cross_platform PASSED [ 35%]
+tests/test_migration_and_paths.py::test_file_path_model PASSED          [ 39%]
+tests/test_migration_and_paths.py::test_base_file_stat_model PASSED     [ 42%]
+tests/test_migration_and_paths.py::test_base_text_file_and_lines PASSED [ 46%]
+tests/test_migration_and_paths.py::test_ignore_relative_to_root_in_temp_dir PASSED [ 50%]
+tests/test_migration_and_paths.py::test_piper_engine_config PASSED       [ 53%]
+tests/test_path_matcher.py::test_normalize_pattern_cross_platform PASSED [ 57%]
+tests/test_path_matcher.py::test_matcher_exact_windows_path PASSED       [ 60%]
+tests/test_path_matcher.py::test_matcher_directory_trailing_slash PASSED [ 64%]
+tests/test_path_matcher.py::test_matcher_bare_directory_component PASSED [ 67%]
+tests/test_path_matcher.py::test_matcher_wildcard_patterns PASSED        [ 71%]
+tests/test_path_matcher.py::test_matcher_globstar FAILED                 [ 75%]
+tests/test_path_matcher.py::test_debug_callback_logging PASSED           [ 78%]
+tests/test_path_matcher.py::test_matches_unix_pattern_helper PASSED      [ 82%]
+tests/test_version_bump.py::test_parse_semver_valid PASSED               [ 85%]
+tests/test_version_bump.py::test_parse_semver_invalid PASSED             [ 89%]
+tests/test_version_bump.py::test_calculate_next_version PASSED           [ 92%]
+tests/test_version_bump.py::test_update_files_in_temp_dir PASSED         [ 96%]
+tests/test_version_bump.py::test_cli_show PASSED                         [100%]
+
+================================== FAILURES ===================================
+________________ test_file_command_result_rendering_and_speech ________________
+
+tmp_path = WindowsPath('C:/Users/Will/AppData/Local/Temp/pytest-of-Will/pytest-2197/test_file_command_result_rende0')
+
+    def test_file_command_result_rendering_and_speech(tmp_path):
+        f1 = tmp_path / "file1.txt"
+        f1.write_text("hello")
+        f2 = tmp_path / "file2.txt"
+        f2.write_text("world")
+    
+        fr1 = FileResult(f1, tmp_path)
+        fr2 = FileResult(f2, tmp_path)
+    
+        fcr = FileCommandResult(
+            command_name="scan",
+            root_path=FilePath.from_path(tmp_path),
+            files=[fr1, fr2],
+            metrics=FilterMetrics(total_scanned=2, matched_count=2),
+        )
+    
+        speech = fcr.to_speech_summary()
+        assert "DevTul scan processed 2 files in" in speech
+    
+>       json_str = fcr.render(format="json")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_command_io_models.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\devtul\core\models.py:566: in render
+    return self.model_dump_json(indent=2)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def model_dump_json(...) -> str:
+...
+pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'devtul.core.models.FileResult'>
+
+_________________________ test_listing_result_formats _________________________
+
+AssertionError: assert 'path\nsrc/main.py\ntests/test.py' == 'path\r\nsrc/main.py\r\ntests/test.py'
+
+____________________________ test_matcher_globstar ____________________________
+
+    def test_matcher_globstar():
+        matcher = UnixPathMatcher(["src/**/*.py"])
+        assert matcher.matches("src/devtul/commands/tree.py")[0] is True
+>       assert matcher.matches("src/main.py")[0] is True
+E       assert False is True

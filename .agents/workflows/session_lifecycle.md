@@ -59,18 +59,21 @@ python .agents/skills/agent-ops/scripts/agent_ops.py session-init --name <sessio
 
 ---
 
-### Step 3: Drafting the Implementation Plan
-1. Author `.artifacts/<session-slug>/implementation_plan.md`.
+### Step 3: Drafting & Presenting the Implementation Plan
+1. Author `.artifacts/<session-slug>/implementation_plan.md` in the repository.
 2. Include:
    - Root cause analysis or functional requirements.
    - Proposed architectural changes.
    - Checklist of tasks with markdown checkboxes (`- [ ]`).
    - Verification procedures.
+3. **Present via IDE Artifact Tool:**
+   - Always present the implementation plan directly to the user using the IDE `write_to_file` tool targeting `<appDataDir>\brain\<conversation-id>/implementation_plan.md` with `ArtifactMetadata` (`RequestFeedback: true`, `UserFacing: true`).
+   - This renders the plan in the interactive artifact viewer with a "Proceed" button for user review and approval.
 
 ---
 
 ### Step 4: Collecting Feedback
-1. Present the implementation plan to the user.
+1. Present the implementation plan to the user using the artifact tool as described above.
 2. If the user provides feedback, corrections, or adjustments:
    - Save the user response verbatim into `.artifacts/<session-slug>/user_feedback_1.md`.
    - Update `implementation_plan.md` to reflect approved revisions.
