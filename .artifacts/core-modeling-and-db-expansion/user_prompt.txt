@@ -1,0 +1,41 @@
+Couple tasks for you:
+Task 1. 
+Run a phesability study for using/replacing the core modeling for files in the entire project (except things like `strings` and `ppdf`) with the cherry-picked Pydantic models used in `reporter`. seek objective answers the follwing questions:
+- Whould there be any specific *reason* to do this other than simplifying the codebase?
+- Whould there be a specific time gain?
+- Is there any reasons documented or inplied that this change was not considered when the cherry-picked models were imported that should be considered?
+
+If the report determines that the code should subplant the current modeling for file commands and or modeling, a plan for the code changes should be in the inplimentation plan. 
+---
+# Task 2. 
+feature/tree-and-rpe-format-parent-option
+> "as a user I want to have an option to display only the name of the parent folder as the root of the tree rendering"
+Example (Current Output):
+```
+C:/Users/Will/Desktop/scrh/                                                                                                                                                                                                                                                                                        
+├── results/                                                                                                                                                                                                                                                                                                       
+│   ├── INGESTION_QUEUE_C_src_20261002_004339.jsonl       
+... 
+```
+Example (Desired Output):
+```
+scrh/                                                                                                                                                                                                                                                                                        
+├── results/                                                                                                                                                                                                                                                                                                       
+│   ├── INGESTION_QUEUE_C_src_20261002_004339.jsonl        
+...
+```
+Option Details: 
+Flag: `--fmt-parent/--fmt-root`; Type: bool; Default: `--fmt-parent`:True (`scrh/ over `C/Users/Will/Desktpo/scrh/`)
+---
+# Task 3
+feature/database-command-expansion
+> "as a user I want to have a suite of informational and opperational commands for the connected databases"
+>  - "As a user I want to be able to view a list of databases and their tables using `dt db view  --db <> --table <> `" 
+> - " As a user I want to query my database and pipe data from it into formats JSON, YAML, TSV, CSV, Markdown table, or into a custom jinja template passed as a string or file into a file `-o, --outfile <>`"
+> "As a user I want to be able to query data files like databases using a sub-command of `dt-db` (a la `duckdb CLI`)"
+---
+# Task 4
+Manageing the package library 
+I am going to want to start packaging some tools with this to aid in the `tools` portion. this will start to include things like `duckdb CLI`, `sqlitesqudio`, `ffmpeg` etc.. Right now I can see a use case for starting this using duckdb (which might just be installed via installing is as a package, since that often provides the compiled executables too...)
+
+Springboarding off of that last thought mid-stream, I am installing duckdb as a package. and testing this hypothesis. Okay so installing `duckdb` does not add the `duckdb.exe` to the .venv/scripts dir, BUT installing `duckdb-cli` does. SO it might be possible that I can manage the binaries I want to use as package in pip, but maybe not *all* of them. For now we can let the duckdb-cli requirement be met by uv.
