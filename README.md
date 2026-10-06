@@ -1,6 +1,6 @@
 # DevTul (`dt`)
 
-[![Version](https://img.shields.io/badge/version-v0.5.0-blue.svg)](https://github.com/Willmo103/devtul/releases)
+[![Version](https://img.shields.io/badge/version-v0.5.1-blue.svg)](https://github.com/Willmo103/devtul/releases)
 [![Python](https://img.shields.io/badge/python-3.13%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI/CD](https://github.com/Willmo103/devtul/actions/workflows/release.yml/badge.svg)](https://github.com/Willmo103/devtul/actions)
