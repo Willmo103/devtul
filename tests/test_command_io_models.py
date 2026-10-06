@@ -131,3 +131,30 @@ def test_file_command_pipeline_in_temp_dir(tmp_path):
     assert "tests/test_foo.py" not in names
     assert "empty.txt" not in names
     assert metrics.excluded_count == 1
+
+
+def test_file_result_pydantic_serialization(tmp_path):
+    f = tmp_path / "hello.py"
+    f.write_text("print('test')")
+
+    fr = FileResult(f, tmp_path)
+    # Pydantic v2 model_dump & model_dump_json
+    dumped = fr.model_dump()
+    assert dumped["size"] == len("print('test')")
+    assert "full_path" in dumped
+    assert "relative_path" in dumped
+
+    json_str = fr.model_dump_json()
+    assert '"size":' in json_str
+
+    # Backward compatibility methods
+    d = fr.to_dict()
+    assert d["content_state"] == "not_empty"
+    assert d["relative_path"] == "hello.py"
+
+    fr.add_event({"type": "test_event", "desc": "testing"})
+    assert len(fr.events) == 1
+    assert fr.events[0]["type"] == "test_event"
+
+    assert fr.file_path_model.name == "hello.py"
+    assert fr.file_stat_model.st_size == len("print('test')")

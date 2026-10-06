@@ -111,13 +111,7 @@ class FileCommand(BaseCommand):
         if not git_mode and not options.no_ignore:
             paths = filter_gathered_paths_by_default_ignores(paths, root_path=target_path)
 
-        # 3. Domain Model Wrapping
-        file_results: List[FileResult] = []
-        for p in paths:
-            if p.is_file():
-                file_results.append(FileResult(p, target_path))
-
-        # 4. Pattern Matcher setup
+        # 3. Pattern Matcher setup
         debug_cb = self.debug_log if options.debug else None
         match_matcher = (
             UnixPathMatcher(options.match, root_path=target_path, debug_callback=debug_cb)
@@ -135,12 +129,22 @@ class FileCommand(BaseCommand):
         excluded_count = 0
         empty_count = 0
 
-        for res in file_results:
-            rel_posix = res.relative_path.as_posix()
+        target_resolved = target_path.resolve()
+
+        for p in paths:
+            if not p.is_file():
+                continue
+
+            try:
+                rel_path = p.resolve().relative_to(target_resolved)
+            except ValueError:
+                rel_path = p
+
+            rel_posix = rel_path.as_posix()
 
             # Check match patterns
             if match_matcher:
-                is_match, pat, reason = match_matcher.matches(res.relative_path)
+                is_match, pat, reason = match_matcher.matches(rel_path)
                 if not is_match:
                     if options.debug:
                         self.debug_log(f"[DEBUG] File '{rel_posix}' omitted (did not match any match pattern)")
@@ -151,12 +155,19 @@ class FileCommand(BaseCommand):
 
             # Check exclude patterns
             if exclude_matcher:
-                is_excl, pat, reason = exclude_matcher.matches(res.relative_path)
+                is_excl, pat, reason = exclude_matcher.matches(rel_path)
                 if is_excl:
                     excluded_count += 1
                     if options.debug:
                         self.debug_log(f"[DEBUG] File '{rel_posix}' excluded by pattern '{pat}' ({reason})")
                     continue
+
+            # Construct FileResult only for matching, non-excluded candidate files
+            res = FileResult(
+                full_path=p.resolve(),
+                relative_path=rel_path,
+                fetch_stat=True,
+            )
 
             # Check empty status
             if not options.include_empty and res.content_status == FileContentStatus.EMPTY:

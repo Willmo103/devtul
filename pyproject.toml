@@ -83,6 +83,7 @@ dt-new = "devtul.commands.new:entry"
 dt-rpr = "devtul.commands.repr_cmd:entry"
 dt-ppdf = "devtul.commands.pdf:entry"
 dt-str = "devtul.commands.strings_cmd:entry"
+dt-db = "devtul.commands.db:entry"
 
 
 [tool.pytest.ini_options]

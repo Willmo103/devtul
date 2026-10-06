@@ -42,34 +42,55 @@ View all saved database connection profiles in a formatted Rich table:
 dt db ls
 ```
 
-Displays:
-- Profile Name
-- Engine Type
-- Host & Port
-- Database Name
-- Username
-- Created & Updated Timestamps
-
-### 3. Test Connections (`dt db test`)
-Verify network reachability and database authentication credentials:
+### 3. View Databases & Table Schemas (`dt db view`)
+Inspect available databases, list tables within a database, or view schema and sample data:
 
 ```bash
-# Test a specific connection profile:
-dt db test my-profile
+# View all saved profiles and local SQLite databases in the current directory:
+dt db view
 
-# Test all saved profiles:
-dt db test --all
+# List tables and row counts in a database:
+dt db view --db ./my_data.db
+
+# Inspect schema and sample rows for a specific table:
+dt db view --db ./my_data.db --table users
 ```
 
-### 4. Connect to a Database (`dt db conn`)
-Retrieve connection strings or launch an interactive database session:
+### 4. Query Databases & Export Results (`dt db query`)
+Execute SQL queries against a database and export tabular data in multiple formats or custom Jinja templates:
 
 ```bash
-# Retrieve connection URI for scripts or environment variables:
-dt db conn my-profile --uri
+# Display Rich terminal table:
+dt db query "SELECT id, name FROM users" --db ./my_data.db
 
-# Launch interactive CLI session:
-dt db conn my-profile
+# Export to JSON:
+dt db query "SELECT id, name FROM users" --db ./my_data.db --fmt json
+
+# Export to CSV / TSV:
+dt db query "SELECT id, name FROM users" --db ./my_data.db --fmt csv -o users.csv
+
+# Export to Markdown table:
+dt db query "SELECT id, name FROM users" --db ./my_data.db --fmt md
+
+# Render into custom Jinja2 template:
+dt db query "SELECT id, name FROM users" --db ./my_data.db --fmt jinja -t "{% for r in rows %}User: {{ r.name }}\n{% endfor %}"
+```
+
+### 5. Query Flat Data Files via DuckDB (`dt db query-file`)
+Query CSV, Parquet, JSON, and SQLite files directly with DuckDB without loading them into a database server:
+
+```bash
+# Inspect first 50 rows of a CSV file:
+dt db query-file ./analytics.csv
+
+# Execute analytical SQL queries with DuckDB:
+dt db query-file "SELECT department, AVG(salary) as avg_sal FROM 'employees.csv' GROUP BY department" --fmt table
+
+# Query directly to JSON or Markdown:
+dt db query-file "SELECT * FROM 'logs.parquet' WHERE status = 'ERROR' LIMIT 10" --fmt md
+
+# Launch interactive DuckDB CLI:
+dt db query-file ./analytics.csv --cli
 ```
 
 ---
@@ -78,16 +99,22 @@ dt db conn my-profile
 
 ### Example 1: Add a Local PostgreSQL Connection Interactively
 ```powershell
-dt db add
-# Prompts for Engine, Name, Host, Port, Database, User, Password
+dt db create
+# Interactively prompts for connection parameters and stores profile in ~/.devtul/devtul_interface.db
 ```
 
-### Example 2: Add a SQLite Connection Directly via CLI
+### Example 2: Inspect a SQLite Table Schema and First 5 Rows
 ```powershell
-dt db add --name "app-cache" --engine "sqlite" --database "C:/data/app_cache.db"
+dt db view --db ~/.devtul/devtul_interface.db --table file_templates
 ```
 
-### Example 3: Test Database Connectivity in CI/CD or Diagnostic Scripts
+### Example 3: Extract Query Data directly to JSON or CSV File
 ```powershell
-dt db test app-cache
+dt db query "SELECT * FROM database_hosts" --db ~/.devtul/devtul_interface.db --fmt json -o hosts.json
 ```
+
+### Example 4: Analytical Query over a CSV via DuckDB
+```powershell
+dt db query-file "SELECT count(*), max(amount) FROM 'sales.csv'" --fmt json
+```
+

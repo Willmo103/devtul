@@ -60,11 +60,14 @@ class RprCommand(FileCommand):
         total_scanned: int,
         file_meta: bool = True,
         git_mode: bool = True,
+        fmt_parent: bool = True,
     ) -> str:
         """Constructs the comprehensive markdown representation of the repository."""
         filtered_files_paths = sorted([res.relative_path.as_posix() for res in filtered_results])
         git_metadata = get_git_metadata(path) if git_mode else None
-        tree_structure = build_tree_structure(filtered_files_paths, parent=path.as_posix())
+        tree_structure = build_tree_structure(
+            filtered_files_paths, parent=path.as_posix(), fmt_parent=fmt_parent
+        )
 
         markdown_content = []
 
@@ -174,6 +177,7 @@ class RprCommand(FileCommand):
         git: bool = True,
         no_ignore: bool = False,
         debug: bool = False,
+        fmt_parent: bool = True,
     ) -> Optional[ReprResult]:
         resolved_path = path.resolve()
         if not resolved_path.exists():
@@ -218,6 +222,7 @@ class RprCommand(FileCommand):
             total_scanned=metrics.total_scanned,
             file_meta=file_meta,
             git_mode=git_mode,
+            fmt_parent=fmt_parent,
         )
 
         output_content: Union[str, bytes] = markdown_text
@@ -372,6 +377,14 @@ def rpr_command(
             help="Enable verbose path resolution and pattern matching debug output.",
         ),
     ] = False,
+    fmt_parent: Annotated[
+        bool,
+        typer.Option(
+            "--fmt-parent/--no-fmt-parent",
+            "--parent/--fmt-root",
+            help="Display only the parent folder name as tree root (use --fmt-root or --no-fmt-parent for full path).",
+        ),
+    ] = True,
 ) -> Optional[ReprResult]:
     """Generate repository representation (Markdown, Word .docx, Plain Text), or clone and represent a remote repo."""
     # Check if this is a 'clone' invocation
@@ -420,6 +433,7 @@ def rpr_command(
                 git=True,
                 no_ignore=no_ignore,
                 debug=debug,
+                fmt_parent=fmt_parent,
             )
         finally:
             if is_temp and temp_dir_obj:
@@ -445,6 +459,7 @@ def rpr_command(
         git=git,
         no_ignore=no_ignore,
         debug=debug,
+        fmt_parent=fmt_parent,
     )
 
 

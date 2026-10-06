@@ -56,7 +56,7 @@ DevTul commands can be invoked through the unified `dt` entrypoint or through fa
 | **`dt empty`** | `dt-empty` | Empty Item Detection | Pinpoints empty files (`dt empty files`) or empty folders (`dt empty dirs`). |
 | **`dt find-folder`** | `dt-dirs` | Marker Directory Finder | Locates directories matching specific marker files or folder patterns. |
 | **`dt new`** | `dt-new` | Template Scaffolding | SQLite-backed user file template manager (`create`, `ls`, `edit`, `make`). |
-| **`dt db`** | — | Database Profile Manager | Stores connection profiles for PostgreSQL, MySQL, MSSQL, MongoDB, and SQLite. |
+| **`dt db`** | `dt-db` | Database Profile & Query Suite | Stores profiles, views SQLite schemas, runs SQL queries with multi-format export (`--json`, `--yaml`, `--csv`, `--md`), and queries flat files (CSV, Parquet, JSON) with DuckDB. |
 | **`dt reporter`** | — | Visual Repository Reports | Scans repository metadata to JSON cache and serves an interactive web dashboard. |
 | **`dt cp`** | — | File Archiving | Copies repository files or packages them into zip archives. |
 
@@ -126,15 +126,35 @@ dt ls -m "*.ts" --yaml
 dt ls -e "vendor/*" --csv
 ```
 
-### 6. ASCII Directory Trees with Unix-Style Path Filtering
-DevTul uses a unified `UnixPathMatcher` engine across commands. Filter by extension, directory prefix, or wildcard:
+### 6. ASCII Directory Trees with Unix-Style Path Filtering & Root Formatting
+DevTul uses a unified `UnixPathMatcher` engine across commands. Filter by extension, directory prefix, or wildcard, and format the tree root:
 
 ```powershell
-# Tree of Python files, excluding test directories:
+# Tree of Python files, displaying only parent directory basename (default):
 dt tree -m "*.py" -e "tests/*"
+
+# Display full absolute path as root:
+dt tree --no-fmt-parent
 
 # Debug pattern matching behavior:
 dt tree -m "*.py" --debug
+```
+
+### 7. Database Inspection & DuckDB Flat File Queries
+Inspect SQLite databases or query flat files (CSV, Parquet, JSON, SQLite) using embedded DuckDB:
+
+```powershell
+# View schema and tables of the DevTul SQLite database or any target db:
+dt db view
+dt db view --db my_database.db --table users
+
+# Query SQLite with multi-format export (table, json, yaml, csv, md):
+dt db query "SELECT * FROM file_templates" --fmt json -o templates.json
+dt db query "SELECT * FROM users LIMIT 5" --db app.db --fmt md
+
+# Query local CSV, Parquet, or JSON files using DuckDB:
+dt db query-file "SELECT count(*) FROM 'data.csv'"
+dt db duck "SELECT department, AVG(salary) FROM 'employees.parquet' GROUP BY department"
 ```
 
 ---
