@@ -362,8 +362,17 @@ def get_all_files_from_marked_folders(
     return sorted(all_files)
 
 
-def build_tree_structure(files: List[str], parent: str = ".") -> str:
-    """Build a tree structure string from a list of file paths."""
+def build_tree_structure(
+    files: List[str], parent: str = ".", fmt_parent: bool = True
+) -> str:
+    """Build a tree structure string from a list of file paths.
+
+    Args:
+        files: List of file paths to render in the tree
+        parent: The root directory string
+        fmt_parent: If True, display only the parent directory name;
+                    if False, display the full path string.
+    """
     if not files:
         return ""
 
@@ -422,7 +431,18 @@ def build_tree_structure(files: List[str], parent: str = ".") -> str:
         return ""
 
     # Start with root directory
-    first_line = f"{parent}/"
+    if fmt_parent:
+        p = Path(parent)
+        name = p.name
+        if not name or name in [".", "/", "\\"]:
+            try:
+                resolved_name = p.resolve().name
+                name = resolved_name if resolved_name else parent
+            except Exception:
+                name = parent
+        first_line = f"{name}/"
+    else:
+        first_line = f"{parent}/"
     root_lines = [first_line]
     if len(tree_dict) == 1 and "__files__" not in tree_dict:
         # Single root directory

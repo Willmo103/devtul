@@ -1,0 +1,107 @@
+=== USER ACCEPTANCE TESTING (UAT) RUN 1 ===
+Date: 2026-10-05T22:06:00-05:00
+Environment: Windows (Python 3.13.14, uv, DuckDB 1.5.6)
+
+--- Test 1: dt tree parent format (default: --fmt-parent) ---
+Command: uv run dt tree src/devtul/core/
+Output:
+core/
+├── db/
+│   ├── pg_utils.py
+│   └── session.py
+├── templates/
+│   ├── base.md.jinja
+│   ├── git_meta.md.jinja
+│   └── report.html
+├── tts/
+│   ├── __init__.py
+│   └── piper_engine.py
+├── __init__.py
+├── command.py
+├── config.py
+├── constants.py
+├── database.py
+├── docx_processor.py
+├── file_utils.py
+├── interactive.py
+├── models.py
+├── path_matcher.py
+├── reporter.py
+└── utils.py
+Status: PASS (Tree root rendered as parent folder basename 'core/')
+
+--- Test 2: dt tree root format (--no-fmt-parent / --fmt-root) ---
+Command: uv run dt tree src/devtul/core/ --fmt-root
+Output:
+C:/src/devtul/src/devtul/core/
+├── db/
+│   ├── pg_utils.py
+│   └── session.py
+...
+Status: PASS (Tree root rendered as full absolute path)
+
+--- Test 3: Standalone dt-tree entrypoint ---
+Command: uv run dt-tree src/devtul/core/
+Output:
+core/
+...
+Status: PASS (Standalone script matches unified entrypoint behavior)
+
+--- Test 4: dt rpr with parent formatting ---
+Command: uv run dt rpr src/devtul/core -m "*tools*" --no-git -fmt text
+Output:
+## Structure
+
+```
+core/
+└── tools.py
+```
+Status: PASS (dt rpr tree structure honors parent formatting)
+
+--- Test 5: dt db view (Database profiles and SQLite inspection) ---
+Command: uv run dt db view
+Output:
+                 Saved Database Profiles                  
+┌───┬──────────┬──────────┬───────────────────┬──────────┐
+│ # │ Type     │ Database │ Host:Port         │ User     │
+├───┼──────────┼──────────┼───────────────────┼──────────┤
+│ 1 │ postgres │ postgres │ 192.168.0.33:5432 │ postgres │
+│ 2 │ postgres │ postgres │ 192.168.0.25:5432 │ postgres │
+└───┴──────────┴──────────┴───────────────────┴──────────┘
+Status: PASS (Rendered registered host profiles)
+
+--- Test 6: dt db query (SQLite queries & multi-format export) ---
+Command: uv run dt db query "SELECT count(*) as total_templates FROM file_templates"
+Output:
+┌─────────────────┐
+│ total_templates │
+├─────────────────┤
+│ 2               │
+└─────────────────┘
+
+Command: uv run dt db query "SELECT count(*) as total_templates FROM file_templates" --fmt json
+Output:
+[
+  {
+    "total_templates": 2
+  }
+]
+Status: PASS (Table and JSON formatting executed accurately)
+
+--- Test 7: dt db query-file (DuckDB embedded query engine) ---
+Command: uv run dt db query-file "SELECT 42 as answer, 'DuckDB' as engine"
+Output:
+┌────────┬────────┐
+│ answer │ engine │
+├────────┼────────┤
+│ 42     │ DuckDB │
+└────────┴────────┘
+Status: PASS (DuckDB in-process execution and table rendering verified)
+
+--- Test 8: Standalone dt-db entrypoint ---
+Command: uv run dt-db query "SELECT name FROM sqlite_master WHERE type='table'" --fmt csv
+Output:
+name
+file_templates
+database_hosts
+Status: PASS (Standalone dt-db script executed with CSV export format)

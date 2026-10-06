@@ -194,88 +194,88 @@ class FilteredPaths(BaseModel):
         return len(self.ignored)
 
 
-class FileResult:
+class FileResult(BaseModel):
     full_path: Path
     relative_path: Path
-    size: int
-    content_status: FileContentStatus
-    created_at: Optional[datetime]
-    modified_at: Optional[datetime]
+    size: int = 0
+    content_status: FileContentStatus = FileContentStatus.UNKNOWN
+    created_at: Optional[datetime] = None
+    modified_at: Optional[datetime] = None
     content: Optional[str] = None
-    events: list[dict] = []
+    events: list[dict] = Field(default_factory=list)
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(
         self,
-        file_path: Path,
-        input_path: Path,
+        file_path: Optional[Union[Path, str]] = None,
+        input_path: Optional[Union[Path, str]] = None,
+        full_path: Optional[Union[Path, str]] = None,
+        relative_path: Optional[Union[Path, str]] = None,
+        size: Optional[int] = None,
+        content_status: Optional[FileContentStatus] = None,
         created_at: Optional[datetime] = None,
         modified_at: Optional[datetime] = None,
         content: Optional[str] = None,
+        events: Optional[list[dict]] = None,
+        fetch_stat: bool = True,
+        **kwargs: Any,
     ):
-        self.full_path = file_path.resolve()
-        self.relative_path = file_path.resolve().relative_to(input_path.resolve())
-        if created_at and modified_at:
-            self.created_at = created_at
-            self.modified_at = modified_at
+        if file_path is not None and input_path is not None:
+            f_p = Path(file_path).resolve()
+            r_p = f_p.relative_to(Path(input_path).resolve())
+        elif full_path is not None and relative_path is not None:
+            f_p = Path(full_path).resolve() if not isinstance(full_path, Path) else full_path
+            r_p = Path(relative_path) if not isinstance(relative_path, Path) else relative_path
+        elif file_path is not None:
+            f_p = Path(file_path).resolve()
+            r_p = f_p
+        else:
+            f_p = Path(full_path).resolve() if full_path else Path()
+            r_p = Path(relative_path) if relative_path else Path()
+
+        calc_size = size if size is not None else 0
+        calc_status = (
+            content_status if content_status is not None else FileContentStatus.UNKNOWN
+        )
+        calc_created = created_at
+        calc_modified = modified_at
+
+        if fetch_stat and (size is None or created_at is None or modified_at is None):
             try:
-                stat = file_path.stat(follow_symlinks=False)
-                self.size = stat.st_size
-                self.content_status = (
+                st = f_p.stat(follow_symlinks=False)
+                calc_size = st.st_size
+                calc_status = (
                     FileContentStatus.EMPTY
-                    if self.size == 0
+                    if calc_size == 0
                     else FileContentStatus.NOT_EMPTY
                 )
+                if hasattr(st, "st_birthtime"):
+                    calc_created = datetime.fromtimestamp(st.st_birthtime)
+                elif hasattr(st, "st_ctime_ns"):
+                    calc_created = datetime.fromtimestamp(st.st_ctime_ns / 1e9)
+                else:
+                    calc_created = datetime.fromtimestamp(st.st_ctime)
+
+                calc_modified = datetime.fromtimestamp(st.st_mtime)
             except Exception:
-                self.size = -1
-                self.content_status = FileContentStatus.UNKNOWN
-            return
-        try:
-            stat = file_path.stat(
-                follow_symlinks=False
-            )  # not using os.stat to avoid symlink issues
-            self.size = stat.st_size
-            self.content_status = (
-                FileContentStatus.EMPTY
-                if self.size == 0
-                else FileContentStatus.NOT_EMPTY
-            )
-            # st_birthtime is Unix/Linux specific; st_ctime_ns is for Windows/macOS creation time.
-            # Using fromtimestamp(ns / 1e9) as a fallback is a good cross-platform attempt.
-            self.created_at = (
-                datetime.fromtimestamp(stat.st_birthtime)
-                if "st_birthtime" in dir(stat)
-                else datetime.fromtimestamp(stat.st_ctime_ns / 1e9)
-            )
+                calc_size = -1
+                calc_status = FileContentStatus.UNKNOWN
 
-            self.modified_at = datetime.fromtimestamp(stat.st_mtime)
+        super().__init__(
+            full_path=f_p,
+            relative_path=r_p,
+            size=calc_size,
+            content_status=calc_status,
+            created_at=calc_created,
+            modified_at=calc_modified,
+            content=content,
+            events=events if events is not None else [],
+            **kwargs,
+        )
 
-        except Exception:
-            self.size = -1
-            self.content_status = FileContentStatus.UNKNOWN
-            self.created_at = None
-            self.modified_at = None
-
-    def __dict__(self):
-        return {
-            "full_path": self.full_path.as_posix(),
-            "relative_path": self.relative_path.as_posix(),
-            "size": self.size,
-            "content_state": self.content_status.value,
-            "created_at": self.created_at.isoformat() if self.created_at else "Unknown",
-            "modified_at": (
-                self.modified_at.isoformat() if self.modified_at else "Unknown"
-            ),
-            "events": self.events,
-        }
-
-    def __str__(self):
-        return str(self.__dict__())
-
-    def __repr__(self):
-        return f"FileResult(full_path={self.full_path}, relative_path={self.relative_path}, size={self.size}, content_state={self.content_status}, created_at={self.created_at}, modified_at={self.modified_at}, events={self.events})"
-
-    def to_yaml(self):
-        return yaml.dump(self.__dict__())
+    def to_yaml(self) -> str:
+        return yaml.dump(self.to_dict())
 
     def to_dict(self) -> dict:
         return {
@@ -284,11 +284,13 @@ class FileResult:
             "size": self.size,
             "content_state": self.content_status.value,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "modified_at": (self.modified_at.isoformat() if self.modified_at else None),
+            "modified_at": (
+                self.modified_at.isoformat() if self.modified_at else None
+            ),
             "events": [event for event in self.events],
         }
 
-    def add_event(self, event: dict):
+    def add_event(self, event: dict) -> None:
         self.events.append(event)
 
     @property

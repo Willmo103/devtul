@@ -18,9 +18,11 @@ dt-tree [PATH] [OPTIONS]
 - `--match` / `-m`: Unix-style pattern to include files (e.g. `-m "*.py"`).
 - `--exclude` / `-e`: Unix-style pattern to exclude files (e.g. `-e "tests/*"`).
 - `--file` / `-f`: Save the tree output to a text file.
+- `--fmt-parent` / `--fmt-root`: Display only the parent directory name as the tree root (default: `--fmt-parent`: True). Use `--fmt-root` to output the full path.
 - `--git` / `--no-git`: Toggle between Git-tracked files and raw filesystem scanning.
 - `--empty` / `-E`: Include empty files.
 - `--debug`: Display real-time pattern matching resolution logs.
+
 
 ### Examples
 ```powershell

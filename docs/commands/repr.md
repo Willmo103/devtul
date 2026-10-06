@@ -55,6 +55,7 @@ Outputs raw text representations suitable for plain logging or text pipelines.
 | `--exclude` | `-e` | Unix-style pattern to exclude files (can be specified multiple times). | Standard ignores |
 | `--empty` | `-E` / `--no-empty` | Include or exclude empty files. | `--no-empty` |
 | `--filemeta` | `-fm` / `--no-filemeta` | Include or exclude individual file property tables. | `--filemeta` |
+| `--fmt-parent` | `--fmt-root` / `--no-fmt-parent` | Display only the parent directory name as tree root rather than the full absolute path. | `--fmt-parent` (`True`) |
 | `--git` | `-g` / `--no-git` | Filter using git-tracked index if in a Git repository. | `--git` |
 | `--dest` | `-d` | *(Clone only)* Custom folder to clone into (preserves folder). | Ephemeral temp dir |
 | `--depth` | — | *(Clone only)* Shallow clone history depth. | Full history |

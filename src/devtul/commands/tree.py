@@ -43,6 +43,7 @@ class TreeCommand(FileCommand):
         git: bool = True,
         no_ignore: bool = False,
         debug: bool = False,
+        fmt_parent: bool = True,
     ) -> Optional[TreeResult]:
         if not path.exists():
             typer.echo(f"Error: Path {path} does not exist", err=True)
@@ -64,7 +65,9 @@ class TreeCommand(FileCommand):
             return None
 
         filtered_file_strings = [res.relative_path.as_posix() for res in filtered_results]
-        tree_output = build_tree_structure(filtered_file_strings, parent=path.as_posix())
+        tree_output = build_tree_structure(
+            filtered_file_strings, parent=path.as_posix(), fmt_parent=fmt_parent
+        )
 
         result = TreeResult(
             command_name=self.name,
@@ -120,6 +123,12 @@ def tree(
     debug: bool = typer.Option(
         False, "--debug", help="Print debug information for pattern matching"
     ),
+    fmt_parent: bool = typer.Option(
+        True,
+        "--fmt-parent/--no-fmt-parent",
+        "--parent/--fmt-root",
+        help="Display only the parent folder name as tree root (use --fmt-root or --no-fmt-parent for full path)",
+    ),
 ):
     return _tree_cmd.execute(
         path=path,
@@ -130,6 +139,7 @@ def tree(
         git=git,
         no_ignore=no_ignore,
         debug=debug,
+        fmt_parent=fmt_parent,
     )
 
 
