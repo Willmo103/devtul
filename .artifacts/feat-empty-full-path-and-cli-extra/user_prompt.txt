@@ -1,0 +1,10 @@
+remove onnxruntime and piper from the dependancies. I don't believe they are being used, but if they are remove the usages. 
+
+Create a [cli] option for a library install where just the CLI is added to the package when installed (via `uv add git+https://github.com/willmo103/devtul`)
+
+---
+
+Task: feature-enhancement-empty-command
+
+> The `dt empty --folders / --files` command needs to return the full path of the file or folder. 
+---
