@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Dict
 
 import git
-import typer
+
+try:
+    import typer
+except ImportError:
+    typer = None
 from jinja2 import Environment, FileSystemLoader
 
 from devtul.core.config import JINJA_ENVIRONMENT

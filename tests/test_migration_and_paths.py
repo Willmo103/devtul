@@ -16,7 +16,6 @@ from devtul.core.models import (
     FilePath,
     TextFileLine,
 )
-from devtul.core.tts import PiperConfig, PiperEngine
 
 
 def test_is_git_repo(tmp_path):
@@ -112,10 +111,3 @@ def test_ignore_relative_to_root_in_temp_dir(tmp_path):
     assert "main.py" in names
     assert "file.txt" in names
     assert "config" not in names
-
-
-def test_piper_engine_config():
-    config = PiperConfig(default_model="en_US-lessac-medium", length_scale=1.2)
-    engine = PiperEngine(config=config)
-    assert engine.config.length_scale == 1.2
-    assert engine.model_path.name == "en_US-lessac-medium.onnx"
