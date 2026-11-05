@@ -12,8 +12,15 @@ import sys
 import time
 from typing import Any, Callable, List, Optional, Tuple
 
-from rich.console import Console
-import typer
+try:
+    from rich.console import Console
+except ImportError:
+    Console = None
+
+try:
+    import typer
+except ImportError:
+    typer = None
 
 from devtul.core.constants import FileContentStatus
 from devtul.core.file_utils import (
@@ -63,10 +70,12 @@ class BaseCommand(ABC):
         if self.usage:
             doc += f"\n\nUsage:\n  {self.usage.strip()}"
         if self.examples:
-            doc += "\n\nExamples:\n" + "\n".join(f"  {ex.strip()}" for ex in self.examples)
+            doc += "\n\nExamples:\n" + "\n".join(
+                f"  {ex.strip()}" for ex in self.examples
+            )
         return doc
 
-    def register(self, app: typer.Typer) -> None:
+    def register(self, app: Any) -> None:
         """
         Register this command onto a Typer application instance.
         Subclasses should implement registration or bind their execution method.
@@ -97,7 +106,9 @@ class FileCommand(BaseCommand):
         git_mode = options.git and has_git
 
         if options.debug:
-            self.debug_log(f"[DEBUG] Target path: {target_path} (git_mode={git_mode}, has_git={has_git})")
+            self.debug_log(
+                f"[DEBUG] Target path: {target_path} (git_mode={git_mode}, has_git={has_git})"
+            )
 
         # 1. Path Gathering
         if git_mode:
@@ -109,17 +120,23 @@ class FileCommand(BaseCommand):
 
         # 2. Default ignore filtering for non-git runs
         if not git_mode and not options.no_ignore:
-            paths = filter_gathered_paths_by_default_ignores(paths, root_path=target_path)
+            paths = filter_gathered_paths_by_default_ignores(
+                paths, root_path=target_path
+            )
 
         # 3. Pattern Matcher setup
         debug_cb = self.debug_log if options.debug else None
         match_matcher = (
-            UnixPathMatcher(options.match, root_path=target_path, debug_callback=debug_cb)
+            UnixPathMatcher(
+                options.match, root_path=target_path, debug_callback=debug_cb
+            )
             if options.match
             else None
         )
         exclude_matcher = (
-            UnixPathMatcher(options.exclude, root_path=target_path, debug_callback=debug_cb)
+            UnixPathMatcher(
+                options.exclude, root_path=target_path, debug_callback=debug_cb
+            )
             if options.exclude
             else None
         )
@@ -147,7 +164,9 @@ class FileCommand(BaseCommand):
                 is_match, pat, reason = match_matcher.matches(rel_path)
                 if not is_match:
                     if options.debug:
-                        self.debug_log(f"[DEBUG] File '{rel_posix}' omitted (did not match any match pattern)")
+                        self.debug_log(
+                            f"[DEBUG] File '{rel_posix}' omitted (did not match any match pattern)"
+                        )
                     continue
                 matched_count += 1
             else:
@@ -159,7 +178,9 @@ class FileCommand(BaseCommand):
                 if is_excl:
                     excluded_count += 1
                     if options.debug:
-                        self.debug_log(f"[DEBUG] File '{rel_posix}' excluded by pattern '{pat}' ({reason})")
+                        self.debug_log(
+                            f"[DEBUG] File '{rel_posix}' excluded by pattern '{pat}' ({reason})"
+                        )
                     continue
 
             # Construct FileResult only for matching, non-excluded candidate files
@@ -170,7 +191,10 @@ class FileCommand(BaseCommand):
             )
 
             # Check empty status
-            if not options.include_empty and res.content_status == FileContentStatus.EMPTY:
+            if (
+                not options.include_empty
+                and res.content_status == FileContentStatus.EMPTY
+            ):
                 empty_count += 1
                 if options.debug:
                     self.debug_log(f"[DEBUG] File '{rel_posix}' omitted (empty file)")
@@ -304,22 +328,32 @@ class StringCommand(BaseCommand):
         self,
         lines: List[str],
         options: StringFilterOptions,
-        console: Optional[Console] = None,
+        console: Optional[Any] = None,
     ) -> None:
         """
         Render lines to console with Rich highlighting if lines_with is set.
         """
-        if console is None:
+        if console is None and Console is not None:
             console = Console()
 
-        if options.lines_with:
-            from rich.text import Text
+        if console is not None:
+            if options.lines_with:
+                try:
+                    from rich.text import Text
 
-            term = options.lines_with
-            for line in lines:
-                text = Text(line)
-                text.highlight_regex(re.escape(term), style="bold yellow on #2e3440")
-                console.print(text)
+                    term = options.lines_with
+                    for line in lines:
+                        text = Text(line)
+                        text.highlight_regex(
+                            re.escape(term), style="bold yellow on #2e3440"
+                        )
+                        console.print(text)
+                except ImportError:
+                    for line in lines:
+                        console.print(line)
+            else:
+                for line in lines:
+                    console.print(line)
         else:
             for line in lines:
-                console.print(line)
+                print(line)

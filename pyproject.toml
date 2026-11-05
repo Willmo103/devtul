@@ -16,16 +16,13 @@ requires-python = ">=3.13"
 dependencies = [
     "sqlite-utils>=3.38",
     "python-dotenv>=1.1.1",
-    "piper-tts>=1.3.0",
     "toml>=0.10.2",
     "jinja2>=3.1.6",
     "sqlalchemy>=2.0.44",
     "pydantic>=2.12.3",
     "ollama>=0.6.1",
-    "typer>=0.20.0",
     "gitpython>=3.1.45",
     "pyyaml>=6.0.3",
-    "rich>=14.2.0",
     "python-docx>=1.1.2",
     "markdown>=3.7",
     "beautifulsoup4>=4.12.3",
@@ -38,6 +35,10 @@ where = ["src"]
 
 
 [project.optional-dependencies]
+cli = [
+    "typer>=0.20.0",
+    "rich>=14.2.0",
+]
 build = ["uv_build>=0.8.22,<0.9.0"]
 mssql = [
     "pyodbc>=5.3.0",
@@ -59,6 +60,8 @@ all = [
     "pymongo>=4.15.5",
     "mysql>=0.0.3",
     "psycopg2-binary>=2.9.11",
+    "typer>=0.20.0",
+    "rich>=14.2.0",
 ]
 dev = [
     "uv_build>=0.8.22,<0.9.0",
@@ -66,6 +69,8 @@ dev = [
     "pytest>=7.4.2",
     "pytest-cov>=4.1.0",
     "pre-commit>=3.4.0",
+    "typer>=0.20.0",
+    "rich>=14.2.0",
 ]
 
 [tool.uv_build]
@@ -100,4 +105,6 @@ dev = [
     "isort>=7.0.0",
     "pyinstaller>=6.11.0",
     "pytest>=9.0.2",
+    "typer>=0.20.0",
+    "rich>=14.2.0",
 ]

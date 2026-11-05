@@ -3,7 +3,10 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
-import typer
+try:
+    import typer
+except ImportError:
+    typer = None
 import yaml
 from jinja2 import Template
 from pydantic import BaseModel

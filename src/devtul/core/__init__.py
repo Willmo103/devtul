@@ -4,15 +4,18 @@ Core utilities for devtul.
 
 from ..git.utils import format_git_metadata_table, get_git_metadata
 from .constants import IGNORE_EXTENSIONS, IGNORE_PARTS
-from .file_utils import (build_tree_structure, search_in_file,
-                         should_ignore_path)
+from .file_utils import build_tree_structure, search_in_file, should_ignore_path
 from .command import BaseCommand, FileCommand
 from .path_matcher import (
     UnixPathMatcher,
     matches_unix_pattern,
     normalize_pattern,
 )
-from .reporter import app as reporter_app
+
+try:
+    from .reporter import app as reporter_app
+except (ImportError, AttributeError):
+    reporter_app = None
 from .utils import write_to_file
 
 __all__ = [

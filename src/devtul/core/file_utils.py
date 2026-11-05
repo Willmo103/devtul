@@ -2,14 +2,32 @@ import fnmatch
 import os
 import re
 import subprocess
+import sys
 from os import walk
 from pathlib import Path
 from typing import List, Optional
 
-import typer
+try:
+    import typer
+except ImportError:
+    typer = None
 
 from devtul.core.constants import IGNORE_EXTENSIONS, IGNORE_PARTS, GitScanModes
 from devtul.core.models import FileSearchMatch
+
+
+def _echo(message: str, err: bool = False, **kwargs) -> None:
+    if typer is not None:
+        typer.echo(message, err=err, **kwargs)
+    else:
+        print(message, file=sys.stderr if err else sys.stdout)
+
+
+def _exit(code: int = 0) -> None:
+    if typer is not None:
+        raise typer.Exit(code)
+    else:
+        sys.exit(code)
 
 
 def is_git_repo(path: Path) -> bool:
@@ -40,7 +58,7 @@ def gather_all_paths(root: Path) -> List[Path]:
 def try_gather_all_git_tracked_paths(repo_path: Path) -> List[Path]:
     """Gather all git-tracked file and directory paths under the repository path."""
     if not repo_path.is_dir() or not repo_path.exists():
-        typer.echo(f"Error: {repo_path} is not a valid directory", err=True)
+        _echo(f"Error: {repo_path} is not a valid directory", err=True)
         return []
     elif not is_git_repo(repo_path):
         return filter_gathered_paths_by_default_ignores(
@@ -63,7 +81,7 @@ def try_gather_all_git_tracked_paths(repo_path: Path) -> List[Path]:
         # check to see if git repo needs to be added as a safe directory
         if "detected dubious ownership" in e.stderr:
             # ask to add repo as safe directory
-            typer.echo(
+            _echo(
                 "Git repository has dubious ownership. Should it be added to the .gitconfig safe.directory list? (y/n): ",
                 nl=False,
             )
@@ -84,14 +102,14 @@ def try_gather_all_git_tracked_paths(repo_path: Path) -> List[Path]:
                         check=True,
                         shell=shell,
                     )
-                    typer.echo(f"Added {repo_path} to safe.directory list.")
+                    _echo(f"Added {repo_path} to safe.directory list.")
                     # Retry gathering git tracked paths
                     return try_gather_all_git_tracked_paths(repo_path)
                 except subprocess.CalledProcessError as e2:
-                    typer.echo(f"Error adding to safe.directory: {e2.stderr}", err=True)
+                    _echo(f"Error adding to safe.directory: {e2.stderr}", err=True)
                     return tracked_paths
-        typer.echo(f"Error: Unable to get git files from {repo_path}", err=True)
-        typer.echo(f"Git error: {e.stderr}", err=True)
+        _echo(f"Error: Unable to get git files from {repo_path}", err=True)
+        _echo(f"Git error: {e.stderr}", err=True)
         return tracked_paths
     return tracked_paths
 
@@ -167,7 +185,9 @@ def filter_gathered_paths_by_default_ignores(
     Returns:
         Filtered list of paths
     """
-    paths = filter_gathered_paths_by_path_parts(paths, IGNORE_PARTS, root_path=root_path)
+    paths = filter_gathered_paths_by_path_parts(
+        paths, IGNORE_PARTS, root_path=root_path
+    )
     paths = filter_gathered_paths_by_patterns(paths, IGNORE_EXTENSIONS)
     return paths
 
@@ -235,11 +255,11 @@ def prompt_on_git_folder_detection(path: Path) -> str:
     Returns:
         User's GitScanModes choice
     """
-    typer.echo(f"Git repository detected at {path}. and no --git option was provided.")
-    typer.echo("Choose how to proceed:")
-    typer.echo("1) Scan using git tracked files only")
-    typer.echo("2) Scan all files, ignoring git")
-    typer.echo("3) Cancel operation")
+    _echo(f"Git repository detected at {path}. and no --git option was provided.")
+    _echo("Choose how to proceed:")
+    _echo("1) Scan using git tracked files only")
+    _echo("2) Scan all files, ignoring git")
+    _echo("3) Cancel operation")
     choice = input("Enter your choice (1/2/3): ").strip()
     if choice == "1":
         return GitScanModes.GIT_TRACKED
@@ -352,7 +372,9 @@ def get_all_files_from_marked_folders(
     for marked_dir in marked_dirs:
         raw_paths = gather_all_paths(marked_dir)
         filtered_paths = filter_gathered_paths_by_path_parts(raw_paths, ignore_parts)
-        filtered_paths = filter_gathered_paths_by_patterns(filtered_paths, ignore_patterns)
+        filtered_paths = filter_gathered_paths_by_patterns(
+            filtered_paths, ignore_patterns
+        )
         for p in filtered_paths:
             if p.is_file():
                 if not include_empty and p.stat().st_size == 0:
@@ -545,8 +567,8 @@ def copy_files(
     filtered_paths = filter_gathered_paths_by_default_ignores(paths)
 
     if not filtered_paths:
-        typer.echo("No files found to copy.", err=True)
-        raise typer.Exit(0)
+        _echo("No files found to copy.", err=True)
+        _exit(0)
 
     dest = dest.resolve()
     dest.mkdir(parents=True, exist_ok=True)
@@ -563,6 +585,6 @@ def copy_files(
 
         zip_path = dest.with_suffix(".zip")
         shutil.make_archive(dest.as_posix(), "zip", dest.as_posix())
-        typer.echo(f"Files copied and zipped to {zip_path}")
+        _echo(f"Files copied and zipped to {zip_path}")
     else:
-        typer.echo(f"Files copied to {dest}")
+        _echo(f"Files copied to {dest}")
