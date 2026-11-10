@@ -1,7 +1,7 @@
 # Walkthrough: Empty Command Full Path Output, [cli] Option, & Prune Piper/ONNX
 
-**Tracking Issue:** [#28](https://github.com/Willmo103/devtul/issues/28)  
-**Pull Request:** [#29](https://github.com/Willmo103/devtul/pull/29)  
+**Tracking Issue:** [#28](https://github.com/Willmo103/devtul/issues/28)
+**Pull Request:** [#29](https://github.com/Willmo103/devtul/pull/29)
 
 ---
 
@@ -55,3 +55,4 @@ uv run dt empty --files
 uv run dt empty --folders
 ```
 Empty files and empty directories return resolved full paths.
+

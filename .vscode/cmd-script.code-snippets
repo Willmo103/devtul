@@ -1,0 +1,26 @@
+{
+  "New Cmd Script": {
+    "scope": "batch,cmd",
+    "prefix": "cmd-script",
+    "body": [
+      ":: version: '1.0.0'",
+      ":: rev date:",
+      ":: author: Will Morris",
+      ":: created date: $1",
+      ":: usage: $2.cmd",
+      ":: purpose: $3",
+      "",
+      "@echo off",
+      "setlocal",
+      "",
+      "$4",
+      "",
+      "endlocal",
+    ],
+    "description": "",
+    "isFileTemplate": true,
+  },
+}
+// isFileTemplate "The snippet is meant to populate or replace a while file"
+// description "The snippet desciption"
+// scope "A list of language names to which this snippet applies, e.g. 'typescript,javascript'."
