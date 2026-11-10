@@ -12,7 +12,7 @@ except ImportError:
 
         __version__ = _pkg_version("devtul")
     except Exception:
-        __version__ = "0.6.0"
+        __version__ = "0.7.0"
 
     app = None
     main = None
