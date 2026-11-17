@@ -12,10 +12,17 @@ import re
 from typing import Any, Dict, Optional, Tuple, Union
 
 from bs4 import BeautifulSoup, NavigableString
-import docx
-from docx.oxml import parse_xml
-from docx.oxml.ns import nsdecls
-from docx.shared import Inches, Pt, RGBColor
+
+try:
+    import docx
+    from docx.oxml import parse_xml
+    from docx.oxml.ns import nsdecls
+    from docx.shared import Inches, Pt, RGBColor
+except ImportError:
+    docx = None
+    parse_xml = None
+    nsdecls = None
+    Inches = Pt = RGBColor = None
 import markdown
 import yaml
 
@@ -26,8 +33,13 @@ class DocxProcessor:
     """
 
     @staticmethod
-    def apply_default_styles(doc: docx.Document) -> None:
+    def apply_default_styles(doc: Any) -> None:
         """Applies a consistent professional style, font, and size to the document."""
+        if docx is None or Pt is None:
+            raise ImportError(
+                "Generating Word documents (.docx) requires the 'python-docx' library. "
+                "Install with: uv add 'devtul[docx]' or pip install 'devtul[docx]'"
+            )
         style = doc.styles["Normal"]
         font = style.font
         font.name = "Calibri"
@@ -185,7 +197,9 @@ class DocxProcessor:
             run.font.color.rgb = RGBColor(36, 41, 46)
 
     @classmethod
-    def add_inline_formatting(cls, doc: docx.Document, paragraph: Any, element: Any) -> None:
+    def add_inline_formatting(
+        cls, doc: docx.Document, paragraph: Any, element: Any
+    ) -> None:
         """Processes child nodes of an HTML element, preserving inline code, bold, italic, strikethrough, and links."""
         for child in element.contents:
             if isinstance(child, NavigableString):
@@ -245,7 +259,9 @@ class DocxProcessor:
                 cls.add_inline_formatting(doc, p, target)
 
         for pre in pres:
-            cls.render_code_block(doc, pre, left_indent_inches=0.25 * indent_level + 0.25)
+            cls.render_code_block(
+                doc, pre, left_indent_inches=0.25 * indent_level + 0.25
+            )
 
         for sublist in sublists:
             sub_style = "List Bullet" if sublist.name == "ul" else "List Number"
@@ -322,6 +338,11 @@ class DocxProcessor:
         """
         Converts markdown string into a styled Word document and writes to output_docx_path.
         """
+        if docx is None:
+            raise ImportError(
+                "Generating Word documents (.docx) requires the 'python-docx' library. "
+                "Install with: uv add 'devtul[docx]' or pip install 'devtul[docx]'"
+            )
         doc = docx.Document()
         cls.apply_default_styles(doc)
 
@@ -350,6 +371,11 @@ class DocxProcessor:
         """
         Converts markdown string into docx binary bytes in memory.
         """
+        if docx is None:
+            raise ImportError(
+                "Generating Word documents (.docx) requires the 'python-docx' library. "
+                "Install with: uv add 'devtul[docx]' or pip install 'devtul[docx]'"
+            )
         doc = docx.Document()
         cls.apply_default_styles(doc)
 

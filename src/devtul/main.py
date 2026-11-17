@@ -28,6 +28,7 @@ try:
         copy,
         db_cli,
         empty,
+        fetch_command,
         find,
         find_folder,
         git_meta,
@@ -38,6 +39,8 @@ try:
         rpr_command,
         strings_command,
         tree,
+        yt_command,
+        YtCommand,
     )
     from .core import reporter_app
 
@@ -94,6 +97,15 @@ try:
     app.command(
         name="strings", help="Extract printable strings from binary or text files"
     )(strings_command)
+    app.command(
+        name="fetch",
+        help="Fetch a webpage, clean HTML, and display or save clean Markdown",
+    )(fetch_command)
+    app.command(
+        name="yt",
+        cls=YtCommand,
+        help="Download YouTube video, audio, or subtitle transcripts",
+    )(yt_command)
 
     def main():
         """Entry point for the CLI."""

@@ -448,34 +448,47 @@ wheels = [
 ]
 
 [[package]]
+name = "defusedxml"
+version = "0.7.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0f/d5/c66da9b79e5bdb124974bfe172b4daf3c984ebd9c2a06e2b8a4dc7331c72/defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69", size = 75520, upload-time = "2021-03-08T10:59:26.269Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl", hash = "sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61", size = 25604, upload-time = "2021-03-08T10:59:24.45Z" },
+]
+
+[[package]]
 name = "devtul"
 version = "0.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
-    { name = "duckdb" },
     { name = "gitpython" },
+    { name = "html2text" },
+    { name = "httpx" },
     { name = "jinja2" },
     { name = "markdown" },
     { name = "ollama" },
-    { name = "pdfplumber" },
     { name = "pydantic" },
-    { name = "python-docx" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
-    { name = "sqlalchemy" },
+    { name = "rich" },
     { name = "sqlite-utils" },
     { name = "toml" },
+    { name = "typer" },
+    { name = "youtube-transcript-api" },
+    { name = "yt-dlp" },
 ]
 
 [package.optional-dependencies]
 all = [
+    { name = "duckdb" },
     { name = "mysql" },
+    { name = "pdfplumber" },
     { name = "psycopg2-binary" },
     { name = "pymongo" },
     { name = "pyodbc" },
-    { name = "rich" },
-    { name = "typer" },
+    { name = "python-docx" },
+    { name = "sqlalchemy" },
 ]
 build = [
     { name = "uv-build" },
@@ -484,17 +497,26 @@ cli = [
     { name = "rich" },
     { name = "typer" },
 ]
+db = [
+    { name = "duckdb" },
+    { name = "sqlalchemy" },
+]
 dev = [
+    { name = "duckdb" },
     { name = "mkdocs" },
+    { name = "pdfplumber" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
-    { name = "rich" },
-    { name = "typer" },
+    { name = "python-docx" },
+    { name = "sqlalchemy" },
     { name = "uv-build" },
 ]
 docs = [
     { name = "mkdocs" },
+]
+docx = [
+    { name = "python-docx" },
 ]
 mongo = [
     { name = "pymongo" },
@@ -505,6 +527,9 @@ mssql = [
 mysql = [
     { name = "mysql" },
 ]
+pdf = [
+    { name = "pdfplumber" },
+]
 pg = [
     { name = "psycopg2-binary" },
 ]
@@ -513,19 +538,25 @@ pg = [
 dev = [
     { name = "autopep8" },
     { name = "black" },
+    { name = "duckdb" },
     { name = "flake8" },
     { name = "isort" },
+    { name = "pdfplumber" },
     { name = "pyinstaller" },
     { name = "pytest" },
-    { name = "rich" },
-    { name = "typer" },
+    { name = "python-docx" },
+    { name = "sqlalchemy" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.12.3" },
-    { name = "duckdb", specifier = ">=1.5.6" },
+    { name = "duckdb", marker = "extra == 'all'", specifier = ">=1.5.6" },
+    { name = "duckdb", marker = "extra == 'db'", specifier = ">=1.5.6" },
+    { name = "duckdb", marker = "extra == 'dev'", specifier = ">=1.5.6" },
     { name = "gitpython", specifier = ">=3.1.45" },
+    { name = "html2text", specifier = ">=2025.4.15" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "markdown", specifier = ">=3.7" },
     { name = "mkdocs", marker = "extra == 'dev'", specifier = ">=1.6.1" },
@@ -533,7 +564,9 @@ requires-dist = [
     { name = "mysql", marker = "extra == 'all'", specifier = ">=0.0.3" },
     { name = "mysql", marker = "extra == 'mysql'", specifier = ">=0.0.3" },
     { name = "ollama", specifier = ">=0.6.1" },
-    { name = "pdfplumber", specifier = ">=0.11.5" },
+    { name = "pdfplumber", marker = "extra == 'all'", specifier = ">=0.11.5" },
+    { name = "pdfplumber", marker = "extra == 'dev'", specifier = ">=0.11.5" },
+    { name = "pdfplumber", marker = "extra == 'pdf'", specifier = ">=0.11.5" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.4.0" },
     { name = "psycopg2-binary", marker = "extra == 'all'", specifier = ">=2.9.11" },
     { name = "psycopg2-binary", marker = "extra == 'pg'", specifier = ">=2.9.11" },
@@ -544,33 +577,39 @@ requires-dist = [
     { name = "pyodbc", marker = "extra == 'mssql'", specifier = ">=5.3.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.2" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
-    { name = "python-docx", specifier = ">=1.1.2" },
+    { name = "python-docx", marker = "extra == 'all'", specifier = ">=1.1.2" },
+    { name = "python-docx", marker = "extra == 'dev'", specifier = ">=1.1.2" },
+    { name = "python-docx", marker = "extra == 'docx'", specifier = ">=1.1.2" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "rich", marker = "extra == 'all'", specifier = ">=14.2.0" },
+    { name = "rich", specifier = ">=14.2.0" },
     { name = "rich", marker = "extra == 'cli'", specifier = ">=14.2.0" },
-    { name = "rich", marker = "extra == 'dev'", specifier = ">=14.2.0" },
-    { name = "sqlalchemy", specifier = ">=2.0.44" },
+    { name = "sqlalchemy", marker = "extra == 'all'", specifier = ">=2.0.44" },
+    { name = "sqlalchemy", marker = "extra == 'db'", specifier = ">=2.0.44" },
+    { name = "sqlalchemy", marker = "extra == 'dev'", specifier = ">=2.0.44" },
     { name = "sqlite-utils", specifier = ">=3.38" },
     { name = "toml", specifier = ">=0.10.2" },
-    { name = "typer", marker = "extra == 'all'", specifier = ">=0.20.0" },
+    { name = "typer", specifier = ">=0.20.0" },
     { name = "typer", marker = "extra == 'cli'", specifier = ">=0.20.0" },
-    { name = "typer", marker = "extra == 'dev'", specifier = ">=0.20.0" },
     { name = "uv-build", marker = "extra == 'build'", specifier = ">=0.8.22,<0.9.0" },
     { name = "uv-build", marker = "extra == 'dev'", specifier = ">=0.8.22,<0.9.0" },
+    { name = "youtube-transcript-api", specifier = ">=1.2.5" },
+    { name = "yt-dlp", specifier = ">=2026.10.26" },
 ]
-provides-extras = ["cli", "build", "mssql", "mongo", "mysql", "pg", "docs", "all", "dev"]
+provides-extras = ["docx", "pdf", "db", "cli", "build", "mssql", "mongo", "mysql", "pg", "docs", "all", "dev"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "autopep8", specifier = ">=2.3.2" },
     { name = "black", specifier = ">=25.12.0" },
+    { name = "duckdb", specifier = ">=1.5.6" },
     { name = "flake8", specifier = ">=7.3.0" },
     { name = "isort", specifier = ">=7.0.0" },
+    { name = "pdfplumber", specifier = ">=0.11.5" },
     { name = "pyinstaller", specifier = ">=6.11.0" },
     { name = "pytest", specifier = ">=9.0.2" },
-    { name = "rich", specifier = ">=14.2.0" },
-    { name = "typer", specifier = ">=0.20.0" },
+    { name = "python-docx", specifier = ">=1.1.2" },
+    { name = "sqlalchemy", specifier = ">=2.0.44" },
 ]
 
 [[package]]
@@ -707,6 +746,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/01/ee/02a2c011bdab74c6fb3c75474d40b3052059d95df7e73351460c8588d963/h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1", size = 101250, upload-time = "2025-04-24T03:35:25.427Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86", size = 37515, upload-time = "2025-04-24T03:35:24.344Z" },
+]
+
+[[package]]
+name = "html2text"
+version = "2025.4.15"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/27/e158d86ba1e82967cc2f790b0cb02030d4a8bef58e0c79a8590e9678107f/html2text-2025.4.15.tar.gz", hash = "sha256:948a645f8f0bc3abe7fd587019a2197a12436cd73d0d4908af95bfc8da337588", size = 64316, upload-time = "2025-04-15T04:02:30.045Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1d/84/1a0f9555fd5f2b1c924ff932d99b40a0f8a6b12f6dd625e2a47f415b00ea/html2text-2025.4.15-py3-none-any.whl", hash = "sha256:00569167ffdab3d7767a4cdf589b7f57e777a5ed28d12907d8c58769ec734acc", size = 34656, upload-time = "2025-04-15T04:02:28.44Z" },
 ]
 
 [[package]]
@@ -1648,6 +1696,21 @@ wheels = [
 ]
 
 [[package]]
+name = "requests"
+version = "2.34.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "charset-normalizer" },
+    { name = "idna" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ac/c3/e2a2b89f2d3e2179abd6d00ebd70bff6273f37fb3e0cc209f48b39d00cbf/requests-2.34.2.tar.gz", hash = "sha256:f288924cae4e29463698d6d60bc6a4da69c89185ad1e0bcc4104f584e960b9ed", size = 142856, upload-time = "2026-05-14T19:25:27.735Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl", hash = "sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0", size = 73075, upload-time = "2026-05-14T19:25:26.443Z" },
+]
+
+[[package]]
 name = "rich"
 version = "14.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1816,6 +1879,15 @@ wheels = [
 ]
 
 [[package]]
+name = "urllib3"
+version = "2.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e3/05/b17359e1cefb4f909b5e40b1b90a496d987258916dbbf88e842c729f510e/urllib3-2.8.0.tar.gz", hash = "sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63", size = 458972, upload-time = "2026-09-15T19:29:36.253Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl", hash = "sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3", size = 135717, upload-time = "2026-09-15T19:29:34.577Z" },
+]
+
+[[package]]
 name = "uv-build"
 version = "0.8.24"
 source = { registry = "https://pypi.org/simple" }
@@ -1874,4 +1946,26 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/07/f6/d0e5b343768e8bcb4cda79f0f2f55051bf26177ecd5651f84c07567461cf/watchdog-6.0.0-py3-none-win32.whl", hash = "sha256:07df1fdd701c5d4c8e55ef6cf55b8f0120fe1aef7ef39a1c6fc6bc2e606d517a", size = 79065, upload-time = "2024-11-01T14:07:09.525Z" },
     { url = "https://files.pythonhosted.org/packages/db/d9/c495884c6e548fce18a8f40568ff120bc3a4b7b99813081c8ac0c936fa64/watchdog-6.0.0-py3-none-win_amd64.whl", hash = "sha256:cbafb470cf848d93b5d013e2ecb245d4aa1c8fd0504e863ccefa32445359d680", size = 79070, upload-time = "2024-11-01T14:07:10.686Z" },
     { url = "https://files.pythonhosted.org/packages/33/e8/e40370e6d74ddba47f002a32919d91310d6074130fe4e17dabcafc15cbf1/watchdog-6.0.0-py3-none-win_ia64.whl", hash = "sha256:a1914259fa9e1454315171103c6a30961236f508b9b623eae470268bbcc6a22f", size = 79067, upload-time = "2024-11-01T14:07:11.845Z" },
+]
+
+[[package]]
+name = "youtube-transcript-api"
+version = "1.2.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "defusedxml" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/01/4d/e5ab63c432a4a818ec5ca9eb18584472653bbdd845cc46bf9d227bad6c4d/youtube_transcript_api-1.2.5.tar.gz", hash = "sha256:5e750bd1bac188c1b4afeaf20464ba4dd7a5fb05617f48463f9faa5bace683cc", size = 470631, upload-time = "2026-11-05T11:23:21.571Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cb/ee/6463d3dafe3bf671af6b8c149cd746d4a48f43eb23de4b906f8e010b796f/youtube_transcript_api-1.2.5-py3-none-any.whl", hash = "sha256:e79323bcb2daebed25773fef51a8dd10fee2ff39fb5993dccbe060470d6721ea", size = 485658, upload-time = "2026-11-05T11:23:20.365Z" },
+]
+
+[[package]]
+name = "yt-dlp"
+version = "2026.10.26"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/31/4be3987022a6244550ab6a3afe45ad10ac10b5e5ab8874bd8eecc7f8b937/yt_dlp-2026.10.26.tar.gz", hash = "sha256:abe5c6b94c3b2f0560500add1c42e0a97641752743a5b65588ac2007a6e23eb6", size = 3048880, upload-time = "2026-10-26T22:25:26.931Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7f/3d/16ea7d5638cf585991f2c5705e8083688dde633d32d0871f2404e0f4d827/yt_dlp-2026.10.26-py3-none-any.whl", hash = "sha256:a05c5b5d8562f7e8a62f5334348b406af4930d56d3a65f8021d14af0e22339ae", size = 3186201, upload-time = "2026-10-26T22:25:24.877Z" },
 ]

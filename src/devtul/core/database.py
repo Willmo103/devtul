@@ -4,8 +4,7 @@ from typing import Any, Optional
 from sqlite_utils import Database
 
 from devtul.core.config import _app_data
-from devtul.core.models import (DatabaseConfig, DatabaseConfig_DBModel,
-                                NetworkHost)
+from devtul.core.models import DatabaseConfig, DatabaseConfig_DBModel, NetworkHost
 
 db_path = _app_data / "devtul_interface.db"
 database = Database(db_path)
@@ -231,6 +230,7 @@ def resolve_database(db_target: Optional[str] = None) -> tuple[str, Any]:
 def inspect_sqlite_database(path: Path) -> list[dict]:
     """List tables and metadata in a SQLite database."""
     import sqlite3
+
     if not path.exists():
         return []
     conn = sqlite3.connect(str(path))
@@ -250,19 +250,24 @@ def inspect_sqlite_database(path: Path) -> list[dict]:
             col_count = len(cur.fetchall())
         except Exception:
             col_count = "N/A"
-        tables.append({
-            "name": name,
-            "type": item_type,
-            "columns": col_count,
-            "rows": count,
-        })
+        tables.append(
+            {
+                "name": name,
+                "type": item_type,
+                "columns": col_count,
+                "rows": count,
+            }
+        )
     conn.close()
     return tables
 
 
-def inspect_sqlite_table_schema(path: Path, table_name: str) -> tuple[list[dict], list[dict]]:
+def inspect_sqlite_table_schema(
+    path: Path, table_name: str
+) -> tuple[list[dict], list[dict]]:
     """Inspect schema and sample rows for a SQLite table."""
     import sqlite3
+
     if not path.exists():
         return [], []
     conn = sqlite3.connect(str(path))
@@ -271,14 +276,16 @@ def inspect_sqlite_table_schema(path: Path, table_name: str) -> tuple[list[dict]
     cur.execute(f'PRAGMA table_info("{table_name}")')
     columns_info = []
     for col in cur.fetchall():
-        columns_info.append({
-            "cid": col["cid"],
-            "name": col["name"],
-            "type": col["type"],
-            "notnull": bool(col["notnull"]),
-            "dflt_value": col["dflt_value"],
-            "pk": bool(col["pk"]),
-        })
+        columns_info.append(
+            {
+                "cid": col["cid"],
+                "name": col["name"],
+                "type": col["type"],
+                "notnull": bool(col["notnull"]),
+                "dflt_value": col["dflt_value"],
+                "pk": bool(col["pk"]),
+            }
+        )
 
     cur.execute(f'SELECT * FROM "{table_name}" LIMIT 5')
     sample_rows = [dict(row) for row in cur.fetchall()]
@@ -289,6 +296,7 @@ def inspect_sqlite_table_schema(path: Path, table_name: str) -> tuple[list[dict]
 def execute_sqlite_query(path: Path, sql: str) -> tuple[list[str], list[dict]]:
     """Execute a SQL query against a SQLite database."""
     import sqlite3
+
     conn = sqlite3.connect(str(path))
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -299,7 +307,9 @@ def execute_sqlite_query(path: Path, sql: str) -> tuple[list[str], list[dict]]:
     else:
         conn.commit()
         columns = ["status"]
-        rows = [{"status": f"Query executed successfully, {cur.rowcount} rows affected."}]
+        rows = [
+            {"status": f"Query executed successfully, {cur.rowcount} rows affected."}
+        ]
     conn.close()
     return columns, rows
 
@@ -307,6 +317,7 @@ def execute_sqlite_query(path: Path, sql: str) -> tuple[list[str], list[dict]]:
 def execute_duckdb_query(sql: str) -> tuple[list[str], list[dict]]:
     """Execute a query against DuckDB (supports direct CSV/Parquet/JSON/SQLite file scanning)."""
     import duckdb
+
     conn = duckdb.connect(":memory:")
     rel = conn.execute(sql)
     if rel.description:

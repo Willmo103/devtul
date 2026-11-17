@@ -7,7 +7,10 @@ from pathlib import Path
 import sys
 from typing import List, Optional
 
-import pdfplumber
+try:
+    import pdfplumber
+except ImportError:
+    pdfplumber = None
 from rich.console import Console
 import typer
 from typing_extensions import Annotated
@@ -81,7 +84,9 @@ class PrintPdfCommand(StringCommand):
     ) -> StringCommandResult:
         resolved = path.resolve()
         if not resolved.exists():
-            console.print(f"[bold red]Error: PDF file not found at '{resolved}'.[/bold red]")
+            console.print(
+                f"[bold red]Error: PDF file not found at '{resolved}'.[/bold red]"
+            )
             raise typer.Exit(code=1)
 
         raw_lines: List[str] = []
@@ -95,7 +100,9 @@ class PrintPdfCommand(StringCommand):
                     if page_text:
                         raw_lines.extend(page_text.splitlines())
         except Exception as e:
-            console.print(f"[bold red]Error reading PDF file '{resolved}': {e}[/bold red]")
+            console.print(
+                f"[bold red]Error reading PDF file '{resolved}': {e}[/bold red]"
+            )
             raise typer.Exit(code=1)
 
         options = StringFilterOptions(
