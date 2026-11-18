@@ -63,7 +63,9 @@ class RprCommand(FileCommand):
         fmt_parent: bool = True,
     ) -> str:
         """Constructs the comprehensive markdown representation of the repository."""
-        filtered_files_paths = sorted([res.relative_path.as_posix() for res in filtered_results])
+        filtered_files_paths = sorted(
+            [res.relative_path.as_posix() for res in filtered_results]
+        )
         git_metadata = get_git_metadata(path) if git_mode else None
         tree_structure = build_tree_structure(
             filtered_files_paths, parent=path.as_posix(), fmt_parent=fmt_parent
@@ -114,12 +116,18 @@ class RprCommand(FileCommand):
 
                 if file_meta:
                     file_size = res.size
-                    last_modified = res.modified_at.isoformat() if res.modified_at else "Unknown"
-                    created_at = res.created_at.isoformat() if res.created_at else "Unknown"
+                    last_modified = (
+                        res.modified_at.isoformat() if res.modified_at else "Unknown"
+                    )
+                    created_at = (
+                        res.created_at.isoformat() if res.created_at else "Unknown"
+                    )
 
                     max_key_length = len("Relative Path")
                     max_value_length = max(
-                        len(display_path), len(str(last_modified)), len(str(file_size)) + 7
+                        len(display_path),
+                        len(str(last_modified)),
+                        len(str(file_size)) + 7,
                     )
                     file_table = [
                         f"| {'Property'.ljust(max_key_length)} | {'Value'.ljust(max_value_length)} |",
@@ -144,7 +152,9 @@ class RprCommand(FileCommand):
                 markdown_content.append("")
                 markdown_content.append("```" + get_markdown_mapping(full_path))
             except Exception as e:
-                markdown_content.append(f"Error processing metadata for {full_path}: {e}")
+                markdown_content.append(
+                    f"Error processing metadata for {full_path}: {e}"
+                )
                 markdown_content.append("```")
                 markdown_content.append("")
                 continue
@@ -181,7 +191,9 @@ class RprCommand(FileCommand):
     ) -> Optional[ReprResult]:
         resolved_path = path.resolve()
         if not resolved_path.exists():
-            console.print(f"[bold red]Error: Path '{resolved_path}' does not exist.[/bold red]")
+            console.print(
+                f"[bold red]Error: Path '{resolved_path}' does not exist.[/bold red]"
+            )
             raise typer.Exit(1)
 
         has_git = is_git_repo(resolved_path)
@@ -231,20 +243,30 @@ class RprCommand(FileCommand):
             if file is None:
                 default_name = f"{resolved_path.name or 'repo'}_repr.docx"
                 file = Path(default_name).resolve()
-            DocxProcessor.convert_markdown_to_docx(markdown_text, file)
-            console.print(f"[bold green]Successfully generated Word representation: {file}[/bold green]")
+            try:
+                DocxProcessor.convert_markdown_to_docx(markdown_text, file)
+                console.print(
+                    f"[bold green]Successfully generated Word representation: {file}[/bold green]"
+                )
+            except ImportError as e:
+                console.print(f"[bold red]Error:[/bold red] {e}")
+                raise typer.Exit(1)
         elif resolved_format == "text":
             output_content = markdown_text
             if file is not None:
                 write_to_file(markdown_text, file)
-                console.print(f"[bold green]Successfully wrote text representation to {file}[/bold green]")
+                console.print(
+                    f"[bold green]Successfully wrote text representation to {file}[/bold green]"
+                )
             else:
                 typer.echo(markdown_text)
         else:  # md
             output_content = markdown_text
             if file is not None:
                 write_to_file(markdown_text, file)
-                console.print(f"[bold green]Successfully wrote markdown representation to {file}[/bold green]")
+                console.print(
+                    f"[bold green]Successfully wrote markdown representation to {file}[/bold green]"
+                )
             else:
                 typer.echo(markdown_text)
 
@@ -390,8 +412,12 @@ def rpr_command(
     # Check if this is a 'clone' invocation
     if target.lower() == "clone":
         if not url:
-            console.print("[bold red]Error: 'rpr clone' requires a repository URL as the second argument.[/bold red]")
-            console.print("Example: [cyan]dt rpr clone https://github.com/user/repo -f repo.docx[/cyan]")
+            console.print(
+                "[bold red]Error: 'rpr clone' requires a repository URL as the second argument.[/bold red]"
+            )
+            console.print(
+                "Example: [cyan]dt rpr clone https://github.com/user/repo -f repo.docx[/cyan]"
+            )
             raise typer.Exit(code=1)
 
         is_temp = dest is None
@@ -411,7 +437,9 @@ def rpr_command(
                 clone_kwargs["depth"] = depth
             GitRepo.clone_from(url, str(target_clone_path), **clone_kwargs)
         except Exception as e:
-            console.print(f"[bold red]Failed to clone repository '{url}': {e}[/bold red]")
+            console.print(
+                f"[bold red]Failed to clone repository '{url}': {e}[/bold red]"
+            )
             if temp_dir_obj:
                 try:
                     temp_dir_obj.cleanup()
@@ -442,7 +470,9 @@ def rpr_command(
                     temp_dir_obj.cleanup()
                 except Exception as e:
                     if debug:
-                        console.print(f"[dim]Note: could not immediately clean temp dir: {e}[/dim]")
+                        console.print(
+                            f"[dim]Note: could not immediately clean temp dir: {e}[/dim]"
+                        )
 
     # Standard representation invocation
     target_path = Path(target).resolve()

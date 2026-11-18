@@ -1,0 +1,2 @@
+I need the docx to be moved to an optionl dep
+I also need the CLI to be added back to the normal install and have the CLI be a liter version of the main cli that can run on termux (on my phone) ALSO add the two new scripts to devtul `dt fetch` print the md using rich Markdown and or save it as a file. For `dt yt  <url>  <filepath>  [-t --trans [pth] | -a --audio [path]

@@ -6,6 +6,7 @@ from .copy import copy
 from .db import db_cli
 from .dirs import find_folder
 from .empty_items import empty
+from .fetch_cmd import fetch_app, fetch_command
 from .find import FindCommand, find
 from .list_files import ListFilesCommand, ls
 from .markdown import MarkdownCommand, markdown
@@ -15,6 +16,7 @@ from .pdf import PrintPdfCommand, print_pdf_command
 from .repr_cmd import RprCommand, rpr_command
 from .strings_cmd import StringsCommand, strings_command
 from .tree import TreeCommand, tree
+from .youtube_cmd import YtCommand, yt_app, yt_command
 
 __all__ = [
     "find",
@@ -37,4 +39,9 @@ __all__ = [
     "rpr_command",
     "StringsCommand",
     "strings_command",
+    "fetch_command",
+    "fetch_app",
+    "yt_command",
+    "yt_app",
+    "YtCommand",
 ]
